@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ROTC Attendance Management System</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+
+<h1>FULL BRIGHT COLLEGE</h1>
+
+<h2>ROTC ATTENDANCE MANAGEMENT SYSTEM</h2>
+
+<p>Student Attendance Form</p>
+
+</div>
+
+<hr>
+
+<h2 id="cadetName"></h2>
+
+<p id="studentNumber"></p>
+
+<p id="flight"></p>
+
+<hr>
+
+<h3>Attendance Information</h3>
+
+<label>Date</label>
+
+<input
+type="text"
+id="date"
+readonly>
+
+<br><br>
+
+<label>Time</label>
+
+<input
+type="text"
+id="time"
+readonly>
+
+<br><br>
+
+<label>Status</label>
+
+<select id="status">
+
+<option value="Present">Present</option>
+
+<option value="Late">Late</option>
+
+<option value="Excused">Excused</option>
+
+</select>
+
+<hr>
+
+<h3>GPS Verification</h3>
+
+<p id="gpsStatus">
+
+📍 Detecting your location...
+
+</p>
+
+<p>
+
+<strong>Latitude:</strong>
+
+<span id="latitude">-</span>
+
+</p>
+
+<p>
+
+<strong>Longitude:</strong>
+
+<span id="longitude">-</span>
+
+</p>
+
+<p>
+
+<strong>Current Address:</strong>
+
+<span id="address">
+
+Detecting...
+
+</span>
+
+</p>
+
+<p>
+
+<strong>Distance From Training Ground:</strong>
+
+<span id="distance">
+
+Calculating...
+
+</span>
+
+</p>
+
+<hr>
+
+<h3>Live Camera</h3>
+
+<video
+id="video"
+width="320"
+height="240"
+autoplay
+playsinline>
+
+</video>
+
+<br><br>
+
+<button
+class="btn"
+onclick="takePhoto()">
+
+📷 CAPTURE PHOTO
+
+</button>
+
+<br><br>
+
+<canvas
+id="photo"
+width="320"
+height="240">
+
+</canvas>
+
+<hr>
+
+<h3>Digital Signature</h3>
+
+<p>
+
+Please sign inside the box.
+
+</p>
+
+<canvas
+
+id="signature"
+
+width="320"
+
+height="160"
+
+style="border:2px solid black; background:white;">
+
+</canvas>
+
+<br><br>
+
+<button
+
+class="btn"
+
+onclick="clearSignature()">
+
+CLEAR SIGNATURE
+
+</button>
+
+<hr>
+
+<div id="validation">
+
+<h3>Attendance Validation</h3>
+
+<p id="validationStatus">
+
+Waiting for validation...
+
+</p>
+
+</div>
+
+<button
+
+class="btn"
+
+onclick="submitAttendance()">
+
+✅ SUBMIT ATTENDANCE
+
+</button>
+
+<br><br>
+
+<a href="dashboard.html" class="btn">
+
+⬅ BACK TO DASHBOARD
+
+</a>
+
+</div>
+
+<script src="js/attendance.js"></script>
+
+</body>
+
+</html>

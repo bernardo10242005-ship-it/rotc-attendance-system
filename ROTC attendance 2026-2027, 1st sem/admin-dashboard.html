@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ROTC Admin Dashboard</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>ADMIN CONTROL PANEL</h1>
+
+<hr>
+
+<h2>Attendance Settings</h2>
+
+<label>Attendance Status</label>
+
+<select id="attendanceStatus">
+
+<option value="OPEN">OPEN</option>
+
+<option value="CLOSED">CLOSED</option>
+
+</select>
+
+<br><br>
+
+<label>Training Ground Latitude</label>
+
+<input
+type="text"
+id="latitude">
+
+<br><br>
+
+<label>Training Ground Longitude</label>
+
+<input
+type="text"
+id="longitude">
+
+<br><br>
+
+<button class="btn" onclick="getCurrentLocation()">
+
+📍 USE MY CURRENT LOCATION
+
+</button>
+
+<p id="locationStatus"></p>
+
+<br>
+
+<label>Allowed Radius (Meters)</label>
+
+<input
+type="number"
+id="radius"
+value="200">
+
+<br><br>
+
+<label>Attendance Start Time</label>
+
+<input
+type="time"
+id="startTime">
+
+<br><br>
+
+<label>Attendance End Time</label>
+
+<input
+type="time"
+id="endTime">
+
+<br><br>
+
+<button class="btn" onclick="saveSettings()">
+
+SAVE SETTINGS
+
+</button>
+
+<hr>
+
+<h2>Documents</h2>
+
+<button class="btn" onclick="openSheet()">
+
+OPEN GOOGLE SPREADSHEET
+
+</button>
+
+<hr>
+
+<button
+class="btn logout-btn"
+onclick="logoutAdmin()">
+
+LOGOUT
+
+</button>
+
+</div>
+
+<script src="js/admin.js"></script>
+
+</body>
+
+</html>
