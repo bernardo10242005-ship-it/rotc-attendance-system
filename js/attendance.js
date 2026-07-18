@@ -253,82 +253,116 @@ function takePhoto(){
 // SIGNATURE
 // ==========================
 
-const signature=document.getElementById("signature");
+const signature = document.getElementById("signature");
+const signCtx = signature.getContext("2d");
 
-const signCtx=signature.getContext("2d");
+let drawing = false;
+let signed = false;
+
+// White background
 signCtx.fillStyle = "white";
 signCtx.fillRect(0, 0, signature.width, signature.height);
 
-let drawing=false;
+signCtx.strokeStyle = "black";
+signCtx.lineWidth = 2;
+signCtx.lineCap = "round";
 
-let signed=false;
+// ---------- DESKTOP ----------
+signature.addEventListener("mousedown", startMouse);
+signature.addEventListener("mousemove", drawMouse);
+signature.addEventListener("mouseup", stopDrawing);
+signature.addEventListener("mouseleave", stopDrawing);
 
-signature.addEventListener("mousedown",start);
+// ---------- MOBILE ----------
+signature.addEventListener("touchstart", startTouch, { passive: false });
+signature.addEventListener("touchmove", drawTouch, { passive: false });
+signature.addEventListener("touchend", stopDrawing);
 
-signature.addEventListener("mouseup",stop);
+function getMousePos(e) {
+    const rect = signature.getBoundingClientRect();
+    return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+    };
+}
 
-signature.addEventListener("mouseleave",stop);
+function getTouchPos(e) {
+    const rect = signature.getBoundingClientRect();
+    const touch = e.touches[0];
 
-signature.addEventListener("mousemove",draw);
+    return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+    };
+}
 
-function start(e){
+function startMouse(e) {
 
-drawing=true;
+    drawing = true;
+    signed = true;
 
-signed=true;
+    const pos = getMousePos(e);
 
-draw(e);
+    signCtx.beginPath();
+    signCtx.moveTo(pos.x, pos.y);
 
 }
 
-function stop(){
+function drawMouse(e) {
 
-drawing=false;
+    if (!drawing) return;
 
-signCtx.beginPath();
+    const pos = getMousePos(e);
 
-}
-
-function draw(e){
-
-if(!drawing) return;
-
-const rect=signature.getBoundingClientRect();
-
-signCtx.lineWidth=2;
-
-signCtx.lineCap="round";
-
-signCtx.strokeStyle="Black";
-
-signCtx.lineTo(
-
-e.clientX-rect.left,
-
-e.clientY-rect.top
-
-);
-
-signCtx.stroke();
-
-signCtx.beginPath();
-
-signCtx.moveTo(
-
-e.clientX-rect.left,
-
-e.clientY-rect.top
-
-);
+    signCtx.lineTo(pos.x, pos.y);
+    signCtx.stroke();
 
 }
 
-function clearSignature(){
+function startTouch(e) {
+
+    e.preventDefault();
+
+    drawing = true;
+    signed = true;
+
+    const pos = getTouchPos(e);
+
+    signCtx.beginPath();
+    signCtx.moveTo(pos.x, pos.y);
+
+}
+
+function drawTouch(e) {
+
+    e.preventDefault();
+
+    if (!drawing) return;
+
+    const pos = getTouchPos(e);
+
+    signCtx.lineTo(pos.x, pos.y);
+    signCtx.stroke();
+
+}
+
+function stopDrawing() {
+
+    drawing = false;
+    signCtx.beginPath();
+
+}
+
+function clearSignature() {
 
     signCtx.fillStyle = "white";
     signCtx.fillRect(0, 0, signature.width, signature.height);
 
     signed = false;
+
+    signCtx.strokeStyle = "black";
+    signCtx.lineWidth = 2;
+    signCtx.lineCap = "round";
 
 }
 
