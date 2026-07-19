@@ -512,7 +512,7 @@ localStorage.setItem(
 );
 
 // Send attendance to Google Apps Script
-fetch("https://script.google.com/macros/s/AKfycbzrKmu79aGyyyVSjZuff9ZtNublgufjvzu6vc_UG0pWyIZCOM6ArqC7gHsFNIbjecvGRQ/exec", {
+fetch("https://script.google.com/macros/s/AKfycbwYYNTlVOqDT7F8QeAZrAJE1AR29NnNJvOZCak8S1FgJKoedQI3vwIv9TULBu8oy0FPzg/exec", {
     method: "POST",
     headers: {
         "Content-Type": "text/plain;charset=utf-8"
