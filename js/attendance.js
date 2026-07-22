@@ -6,44 +6,53 @@
 
 
 // ======================================================
+// GOOGLE APPS SCRIPT WEB APP URL
+// ======================================================
+
+const APPS_SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbzrKmu79aGyyyVSjZuff9ZtNublgufjvzu6vc_UG0pWyIZCOM6ArqC7gHsFNIbjecvGRQ/exec";
+
+
+// ======================================================
 // GET LOGGED IN STUDENT
 // ======================================================
 
 const student =
-    JSON.parse(localStorage.getItem("student"));
+JSON.parse(
+    localStorage.getItem("student")
+);
+
 
 if (!student) {
 
-    window.location.href = "login.html";
-
-} else {
-
-    document.getElementById("cadetName").textContent =
-        student.name;
-
-    document.getElementById("studentNumber").textContent =
-        "Student Number: " + student.id;
-
-    document.getElementById("flight").textContent =
-        "Flight: " + student.flight;
+    window.location.href =
+    "login.html";
 
 }
 
 
 // ======================================================
-// GOOGLE APPS SCRIPT SETTINGS URL
+// DISPLAY STUDENT INFORMATION
 // ======================================================
 
-const SETTINGS_URL =
-"https://script.google.com/macros/s/AKfycbzrKmu79aGyyyVSjZuff9ZtNublgufjvzu6vc_UG0pWyIZCOM6ArqC7gHsFNIbjecvGRQ/exec";
+document.getElementById(
+    "cadetName"
+).textContent =
+student.name;
 
 
-// ======================================================
-// GOOGLE APPS SCRIPT ATTENDANCE SUBMISSION URL
-// ======================================================
+document.getElementById(
+    "studentNumber"
+).textContent =
+"Student Number: " +
+student.id;
 
-const SUBMIT_URL =
-"https://script.google.com/macros/s/AKfycbwYYNTlVOqDT7F8QeAZrAJE1AR29NnNJvOZCak8S1FgJKoedQI3vwIv9TULBu8oy0FPzg/exec";
+
+document.getElementById(
+    "flight"
+).textContent =
+"Flight: " +
+student.flight;
 
 
 // ======================================================
@@ -58,8 +67,6 @@ let TRAINING_LNG = 0;
 
 let ALLOWED_RADIUS = 200;
 
-let settingsLoaded = false;
-
 
 // ======================================================
 // GPS VARIABLES
@@ -73,7 +80,23 @@ let distanceMeters = 999999;
 
 
 // ======================================================
-// LOAD ADMIN SETTINGS FROM GOOGLE SHEETS
+// CAMERA VARIABLES
+// ======================================================
+
+let photoTaken = false;
+
+
+// ======================================================
+// SIGNATURE VARIABLES
+// ======================================================
+
+let drawing = false;
+
+let signed = false;
+
+
+// ======================================================
+// LOAD SETTINGS
 // ======================================================
 
 async function loadSettings() {
@@ -85,70 +108,64 @@ async function loadSettings() {
         );
 
 
-        const response = await fetch(
+        // Show loading message
 
-            SETTINGS_URL +
+        const gpsStatus =
+        document.getElementById(
+            "gpsStatus"
+        );
+
+        if (gpsStatus) {
+
+            gpsStatus.textContent =
+            "⏳ Loading attendance settings...";
+
+        }
+
+
+        // Request settings from Apps Script
+
+        const response =
+        await fetch(
+            APPS_SCRIPT_URL +
             "?t=" +
-            Date.now(),
-
-            {
-
-                method: "GET",
-
-                cache: "no-store"
-
-            }
-
+            Date.now()
         );
 
 
-        // Check server response
+        // Check HTTP response
 
         if (!response.ok) {
 
             throw new Error(
-
                 "HTTP Error: " +
                 response.status
-
             );
 
         }
 
 
-        // Convert response to JSON
+        // Read JSON
 
         const data =
-            await response.json();
+        await response.json();
 
 
         console.log(
-
             "Settings received:",
-
             data
-
         );
 
 
-        // Check if settings exist
+        // Check Apps Script success
 
         if (
-
-            !data ||
-
-            data.latitude === undefined ||
-
-            data.longitude === undefined ||
-
-            data.radius === undefined
-
+            data.success === false
         ) {
 
             throw new Error(
-
-                "Invalid settings returned by Google Apps Script."
-
+                data.message ||
+                "Google Apps Script returned an error."
             );
 
         }
@@ -156,126 +173,103 @@ async function loadSettings() {
 
         // Save settings
 
-        settings = data;
+        settings =
+        data;
 
 
-        // Convert values to numbers
+        // Convert GPS values
 
         TRAINING_LAT =
-            parseFloat(
-                data.latitude
-            );
+        parseFloat(
+            settings.latitude
+        );
 
 
         TRAINING_LNG =
-            parseFloat(
-                data.longitude
-            );
+        parseFloat(
+            settings.longitude
+        );
 
+
+        // Convert radius
 
         ALLOWED_RADIUS =
-            parseFloat(
-                data.radius
-            ) || 200;
+        parseFloat(
+            settings.radius
+        ) || 200;
 
 
-        // Check if coordinates are valid
+        // Validate coordinates
 
         if (
-
             isNaN(TRAINING_LAT) ||
-
             isNaN(TRAINING_LNG)
-
         ) {
 
             throw new Error(
-
-                "Invalid training ground coordinates."
-
+                "Training ground coordinates are invalid."
             );
 
         }
 
 
-        settingsLoaded = true;
-
-
         console.log(
-
             "Settings loaded successfully."
-
         );
 
 
         console.log(
-
-            "Training Latitude:",
-
+            "Latitude:",
             TRAINING_LAT
-
         );
 
 
         console.log(
-
-            "Training Longitude:",
-
+            "Longitude:",
             TRAINING_LNG
-
         );
 
 
         console.log(
-
-            "Allowed Radius:",
-
+            "Radius:",
             ALLOWED_RADIUS
-
         );
 
 
-        // Start GPS after settings load
+        // ==================================================
+        // SETTINGS LOADED
+        // START ATTENDANCE SYSTEM
+        // ==================================================
 
-        startGPS();
+        initializeAttendance();
 
 
     }
 
     catch (error) {
 
-
         console.error(
-
-            "SETTINGS ERROR:",
-
+            "Settings Error:",
             error
-
         );
 
 
         alert(
-
             "❌ Unable to load attendance settings.\n\n" +
-
-            "Please check your internet connection " +
-
-            "or contact the administrator."
-
+            "Please check your internet connection or contact the administrator."
         );
 
 
         const gpsStatus =
-            document.getElementById(
-                "gpsStatus"
-            );
+        document.getElementById(
+            "gpsStatus"
+        );
 
 
         if (gpsStatus) {
 
             gpsStatus.textContent =
-
-                "🔴 Unable to load settings.";
+            "🔴 Unable to load attendance settings.";
 
         }
 
@@ -285,10 +279,42 @@ async function loadSettings() {
 
 
 // ======================================================
-// START LOADING SETTINGS
+// INITIALIZE ATTENDANCE
 // ======================================================
 
-loadSettings();
+function initializeAttendance() {
+
+    console.log(
+        "Initializing attendance system..."
+    );
+
+
+    // Start clock
+
+    updateClock();
+
+    setInterval(
+        updateClock,
+        1000
+    );
+
+
+    // Start GPS
+
+    startGPS();
+
+
+    // Start camera
+
+    startCamera();
+
+
+    // Setup signature
+
+    setupSignature();
+
+
+}
 
 
 // ======================================================
@@ -297,28 +323,26 @@ loadSettings();
 
 function updateClock() {
 
-
     const now =
-        new Date();
+    new Date();
 
 
     const dateElement =
-        document.getElementById(
-            "date"
-        );
+    document.getElementById(
+        "date"
+    );
 
 
     const timeElement =
-        document.getElementById(
-            "time"
-        );
+    document.getElementById(
+        "time"
+    );
 
 
     if (dateElement) {
 
         dateElement.value =
-
-            now.toLocaleDateString();
+        now.toLocaleDateString();
 
     }
 
@@ -326,155 +350,262 @@ function updateClock() {
     if (timeElement) {
 
         timeElement.value =
-
-            now.toLocaleTimeString();
+        now.toLocaleTimeString();
 
     }
 
 }
 
 
-updateClock();
+// ======================================================
+// GPS
+// ======================================================
+
+function startGPS() {
+
+    if (
+        !navigator.geolocation
+    ) {
+
+        document.getElementById(
+            "gpsStatus"
+        ).textContent =
+        "🔴 GPS NOT SUPPORTED";
+
+        return;
+
+    }
 
 
-setInterval(
+    document.getElementById(
+        "gpsStatus"
+    ).textContent =
+    "🟡 Detecting GPS...";
 
-    updateClock,
 
-    1000
+    navigator.geolocation.getCurrentPosition(
 
-);
+        function(position) {
+
+
+            // Get coordinates
+
+            latitude =
+            position.coords.latitude;
+
+
+            longitude =
+            position.coords.longitude;
+
+
+            // Display GPS status
+
+            document.getElementById(
+                "gpsStatus"
+            ).textContent =
+            "🟢 GPS VERIFIED";
+
+
+            // Display latitude
+
+            document.getElementById(
+                "latitude"
+            ).textContent =
+            latitude.toFixed(6);
+
+
+            // Display longitude
+
+            document.getElementById(
+                "longitude"
+            ).textContent =
+            longitude.toFixed(6);
+
+
+            // Calculate distance
+
+            distanceMeters =
+            calculateDistance(
+
+                latitude,
+
+                longitude,
+
+                TRAINING_LAT,
+
+                TRAINING_LNG
+
+            );
+
+
+            // Display distance
+
+            document.getElementById(
+                "distance"
+            ).textContent =
+            distanceMeters.toFixed(1) +
+            " meters";
+
+
+            // Check radius
+
+            if (
+                distanceMeters <=
+                ALLOWED_RADIUS
+            ) {
+
+                document.getElementById(
+                    "validationStatus"
+                ).innerHTML =
+                "✅ Inside Allowed Area";
+
+            }
+
+            else {
+
+                document.getElementById(
+                    "validationStatus"
+                ).innerHTML =
+                "❌ Outside " +
+                ALLOWED_RADIUS +
+                " Meter Radius";
+
+            }
+
+
+            // Get address
+
+            getAddress(
+                latitude,
+                longitude
+            );
+
+
+        },
+
+        function(error) {
+
+
+            console.error(
+                "GPS Error:",
+                error
+            );
+
+
+            document.getElementById(
+                "gpsStatus"
+            ).textContent =
+            "🔴 GPS NOT AVAILABLE";
+
+
+            alert(
+                "Unable to access your location.\n\n" +
+                "Please make sure Location/GPS is turned ON and allow location permission for the website."
+            );
+
+        },
+
+        {
+
+            enableHighAccuracy:
+            true,
+
+            timeout:
+            15000,
+
+            maximumAge:
+            0
+
+        }
+
+    );
+
+}
 
 
 // ======================================================
 // DISTANCE FORMULA
-// HAVERSINE FORMULA
 // ======================================================
 
 function calculateDistance(
-
     lat1,
-
     lon1,
-
     lat2,
-
     lon2
-
 ) {
 
 
     const R =
-        6371000;
+    6371000;
 
 
     const dLat =
-
-        (
-
-            lat2 -
-            lat1
-
-        ) *
-
-        Math.PI /
-
-        180;
+    (
+        lat2 -
+        lat1
+    ) *
+    Math.PI /
+    180;
 
 
     const dLon =
-
-        (
-
-            lon2 -
-            lon1
-
-        ) *
-
-        Math.PI /
-
-        180;
+    (
+        lon2 -
+        lon1
+    ) *
+    Math.PI /
+    180;
 
 
     const a =
 
+    Math.sin(
+        dLat / 2
+    ) *
+    Math.sin(
+        dLat / 2
+    )
 
-        Math.sin(
+    +
 
-            dLat / 2
+    Math.cos(
+        lat1 *
+        Math.PI /
+        180
+    )
 
-        ) *
+    *
 
-        Math.sin(
+    Math.cos(
+        lat2 *
+        Math.PI /
+        180
+    )
 
-            dLat / 2
+    *
 
-        )
+    Math.sin(
+        dLon / 2
+    )
 
+    *
 
-        +
-
-
-        Math.cos(
-
-            lat1 *
-
-            Math.PI /
-
-            180
-
-        )
-
-
-        *
-
-
-        Math.cos(
-
-            lat2 *
-
-            Math.PI /
-
-            180
-
-        )
-
-
-        *
-
-
-        Math.sin(
-
-            dLon / 2
-
-        )
-
-
-        *
-
-
-        Math.sin(
-
-            dLon / 2
-
-        );
+    Math.sin(
+        dLon / 2
+    );
 
 
     const c =
+    2 *
+    Math.atan2(
 
-        2 *
+        Math.sqrt(a),
 
-        Math.atan2(
+        Math.sqrt(
+            1 - a
+        )
 
-            Math.sqrt(a),
-
-            Math.sqrt(
-
-                1 - a
-
-            )
-
-        );
+    );
 
 
     return R * c;
@@ -487,397 +618,63 @@ function calculateDistance(
 // ======================================================
 
 async function getAddress(
-
     lat,
-
     lng
-
 ) {
-
 
     try {
 
 
         const url =
 
-            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
+        "https://nominatim.openstreetmap.org/reverse" +
+
+        "?format=jsonv2" +
+
+        "&lat=" +
+        lat +
+
+        "&lon=" +
+        lng;
 
 
         const response =
-
-            await fetch(
-
-                url
-
-            );
+        await fetch(
+            url
+        );
 
 
         const data =
-
-            await response.json();
-
-
-        const addressElement =
-
-            document.getElementById(
-
-                "address"
-
-            );
+        await response.json();
 
 
-        if (addressElement) {
+        document.getElementById(
+            "address"
+        ).textContent =
 
-            addressElement.textContent =
+        data.display_name ||
 
-                data.display_name ||
-
-                "Address unavailable.";
-
-        }
+        "Address unavailable.";
 
 
     }
 
-    catch (error) {
+    catch(error) {
 
 
         console.error(
-
-            "ADDRESS ERROR:",
-
+            "Address Error:",
             error
-
         );
 
-
-        const addressElement =
-
-            document.getElementById(
-
-                "address"
-
-            );
-
-
-        if (addressElement) {
-
-            addressElement.textContent =
-
-                "Unable to determine address.";
-
-        }
-
-    }
-
-}
-
-
-// ======================================================
-// START GPS
-// THIS ONLY RUNS AFTER SETTINGS ARE LOADED
-// ======================================================
-
-function startGPS() {
-
-
-    if (!settingsLoaded) {
-
-
-        console.log(
-
-            "Waiting for settings..."
-
-        );
-
-
-        return;
-
-    }
-
-
-    if (
-
-        !navigator.geolocation
-
-    ) {
-
-
-        const gpsStatus =
-
-            document.getElementById(
-
-                "gpsStatus"
-
-            );
-
-
-        if (gpsStatus) {
-
-            gpsStatus.textContent =
-
-                "🔴 GPS NOT AVAILABLE";
-
-        }
-
-
-        return;
-
-    }
-
-
-    const gpsStatus =
 
         document.getElementById(
+            "address"
+        ).textContent =
 
-            "gpsStatus"
-
-        );
-
-
-    if (gpsStatus) {
-
-        gpsStatus.textContent =
-
-            "📍 Detecting your location...";
+        "Unable to determine address.";
 
     }
-
-
-    navigator.geolocation.getCurrentPosition(
-
-
-        // ==========================
-        // SUCCESS
-        // ==========================
-
-        function(position) {
-
-
-            latitude =
-
-                position.coords.latitude;
-
-
-            longitude =
-
-                position.coords.longitude;
-
-
-            console.log(
-
-                "Student Latitude:",
-
-                latitude
-
-            );
-
-
-            console.log(
-
-                "Student Longitude:",
-
-                longitude
-
-            );
-
-
-            if (gpsStatus) {
-
-                gpsStatus.textContent =
-
-                    "🟢 GPS VERIFIED";
-
-            }
-
-
-            const latitudeElement =
-
-                document.getElementById(
-
-                    "latitude"
-
-                );
-
-
-            if (latitudeElement) {
-
-                latitudeElement.textContent =
-
-                    latitude.toFixed(6);
-
-            }
-
-
-            const longitudeElement =
-
-                document.getElementById(
-
-                    "longitude"
-
-                );
-
-
-            if (longitudeElement) {
-
-                longitudeElement.textContent =
-
-                    longitude.toFixed(6);
-
-            }
-
-
-            // Get address
-
-            getAddress(
-
-                latitude,
-
-                longitude
-
-            );
-
-
-            // Calculate distance
-
-            distanceMeters =
-
-                calculateDistance(
-
-                    latitude,
-
-                    longitude,
-
-                    TRAINING_LAT,
-
-                    TRAINING_LNG
-
-                );
-
-
-            console.log(
-
-                "Distance:",
-
-                distanceMeters
-
-            );
-
-
-            const distanceElement =
-
-                document.getElementById(
-
-                    "distance"
-
-                );
-
-
-            if (distanceElement) {
-
-                distanceElement.textContent =
-
-                    distanceMeters.toFixed(1) +
-
-                    " meters";
-
-            }
-
-
-            // Check allowed radius
-
-            const validationStatus =
-
-                document.getElementById(
-
-                    "validationStatus"
-
-                );
-
-
-            if (
-
-                distanceMeters <=
-
-                ALLOWED_RADIUS
-
-            ) {
-
-
-                if (validationStatus) {
-
-                    validationStatus.innerHTML =
-
-                        "✅ Inside Allowed Area";
-
-                }
-
-
-            }
-
-            else {
-
-
-                if (validationStatus) {
-
-                    validationStatus.innerHTML =
-
-                        "❌ Outside " +
-
-                        ALLOWED_RADIUS +
-
-                        " Meter Radius";
-
-                }
-
-            }
-
-
-        },
-
-
-        // ==========================
-        // ERROR
-        // ==========================
-
-        function(error) {
-
-
-            console.error(
-
-                "GPS ERROR:",
-
-                error
-
-            );
-
-
-            if (gpsStatus) {
-
-                gpsStatus.textContent =
-
-                    "🔴 GPS NOT AVAILABLE";
-
-            }
-
-        },
-
-
-        // ==========================
-        // GPS OPTIONS
-        // ==========================
-
-        {
-
-            enableHighAccuracy: true,
-
-            timeout: 15000,
-
-            maximumAge: 0
-
-        }
-
-    );
 
 }
 
@@ -886,77 +683,79 @@ function startGPS() {
 // CAMERA
 // ======================================================
 
-const video =
+function startCamera() {
 
+
+    const video =
     document.getElementById(
-
         "video"
-
     );
 
 
-let photoTaken = false;
+    if (
+        !video
+    ) {
+
+        console.error(
+            "Video element not found."
+        );
+
+        return;
+
+    }
 
 
-if (
+    if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+    ) {
 
-    navigator.mediaDevices &&
+        alert(
+            "Camera is not supported by this browser."
+        );
 
-    navigator.mediaDevices.getUserMedia
+        return;
 
-) {
+    }
 
 
     navigator.mediaDevices
+    .getUserMedia({
 
-        .getUserMedia({
+        video:
+        true
 
-            video: true
+    })
 
-        })
+    .then(
 
+        function(stream) {
 
-        .then(
+            video.srcObject =
+            stream;
 
-            stream => {
+        }
 
+    )
 
-                if (video) {
+    .catch(
 
-                    video.srcObject =
+        function(error) {
 
-                        stream;
-
-                }
-
-            }
-
-        )
-
-
-        .catch(
-
-            error => {
+            console.error(
+                "Camera Error:",
+                error
+            );
 
 
-                console.error(
+            alert(
+                "Unable to access camera.\n\n" +
+                "Please allow camera permission for the website."
+            );
 
-                    "CAMERA ERROR:",
+        }
 
-                    error
-
-                );
-
-
-                alert(
-
-                    "Unable to access camera."
-
-                );
-
-            }
-
-        );
+    );
 
 }
 
@@ -969,20 +768,24 @@ function takePhoto() {
 
 
     const canvas =
-
-        document.getElementById(
-
-            "photo"
-
-        );
+    document.getElementById(
+        "photo"
+    );
 
 
-    if (!canvas || !video) {
+    const video =
+    document.getElementById(
+        "video"
+    );
+
+
+    if (
+        !canvas ||
+        !video
+    ) {
 
         alert(
-
-            "Camera is not available."
-
+            "Camera is not ready."
         );
 
         return;
@@ -991,12 +794,9 @@ function takePhoto() {
 
 
     const ctx =
-
-        canvas.getContext(
-
-            "2d"
-
-        );
+    canvas.getContext(
+        "2d"
+    );
 
 
     ctx.drawImage(
@@ -1014,12 +814,153 @@ function takePhoto() {
     );
 
 
-    photoTaken = true;
+    photoTaken =
+    true;
 
 
-    console.log(
+    alert(
+        "✅ Selfie captured successfully!"
+    );
 
-        "Selfie captured."
+}
+
+
+// ======================================================
+// SIGNATURE SETUP
+// ======================================================
+
+function setupSignature() {
+
+
+    const signature =
+    document.getElementById(
+        "signature"
+    );
+
+
+    if (
+        !signature
+    ) {
+
+        console.error(
+            "Signature canvas not found."
+        );
+
+        return;
+
+    }
+
+
+    const signCtx =
+    signature.getContext(
+        "2d"
+    );
+
+
+    // White background
+
+    signCtx.fillStyle =
+    "white";
+
+
+    signCtx.fillRect(
+
+        0,
+
+        0,
+
+        signature.width,
+
+        signature.height
+
+    );
+
+
+    signCtx.strokeStyle =
+    "black";
+
+
+    signCtx.lineWidth =
+    2;
+
+
+    signCtx.lineCap =
+    "round";
+
+
+    // Desktop
+
+    signature.addEventListener(
+
+        "mousedown",
+
+        startMouse
+
+    );
+
+
+    signature.addEventListener(
+
+        "mousemove",
+
+        drawMouse
+
+    );
+
+
+    signature.addEventListener(
+
+        "mouseup",
+
+        stopDrawing
+
+    );
+
+
+    signature.addEventListener(
+
+        "mouseleave",
+
+        stopDrawing
+
+    );
+
+
+    // Mobile
+
+    signature.addEventListener(
+
+        "touchstart",
+
+        startTouch,
+
+        {
+            passive:
+            false
+        }
+
+    );
+
+
+    signature.addEventListener(
+
+        "touchmove",
+
+        drawTouch,
+
+        {
+            passive:
+            false
+        }
+
+    );
+
+
+    signature.addEventListener(
+
+        "touchend",
+
+        stopDrawing
 
     );
 
@@ -1027,238 +968,64 @@ function takePhoto() {
 
 
 // ======================================================
-// SIGNATURE
-// ======================================================
-
-const signature =
-
-    document.getElementById(
-
-        "signature"
-
-    );
-
-
-const signCtx =
-
-    signature.getContext(
-
-        "2d"
-
-    );
-
-
-let drawing = false;
-
-let signed = false;
-
-
-// White background
-
-signCtx.fillStyle =
-
-    "white";
-
-
-signCtx.fillRect(
-
-    0,
-
-    0,
-
-    signature.width,
-
-    signature.height
-
-);
-
-
-signCtx.strokeStyle =
-
-    "black";
-
-
-signCtx.lineWidth =
-
-    2;
-
-
-signCtx.lineCap =
-
-    "round";
-
-
-// ======================================================
-// DESKTOP SIGNATURE
-// ======================================================
-
-signature.addEventListener(
-
-    "mousedown",
-
-    startMouse
-
-);
-
-
-signature.addEventListener(
-
-    "mousemove",
-
-    drawMouse
-
-);
-
-
-signature.addEventListener(
-
-    "mouseup",
-
-    stopDrawing
-
-);
-
-
-signature.addEventListener(
-
-    "mouseleave",
-
-    stopDrawing
-
-);
-
-
-// ======================================================
-// MOBILE SIGNATURE
-// ======================================================
-
-signature.addEventListener(
-
-    "touchstart",
-
-    startTouch,
-
-    {
-
-        passive: false
-
-    }
-
-);
-
-
-signature.addEventListener(
-
-    "touchmove",
-
-    drawTouch,
-
-    {
-
-        passive: false
-
-    }
-
-);
-
-
-signature.addEventListener(
-
-    "touchend",
-
-    stopDrawing
-
-);
-
-
-// ======================================================
-// MOUSE POSITION
+// MOUSE SIGNATURE
 // ======================================================
 
 function getMousePos(e) {
 
 
-    const rect =
+    const signature =
+    document.getElementById(
+        "signature"
+    );
 
-        signature.getBoundingClientRect();
+
+    const rect =
+    signature.getBoundingClientRect();
 
 
     return {
 
-
         x:
-
-            e.clientX -
-
-            rect.left,
-
+        e.clientX -
+        rect.left,
 
         y:
-
-            e.clientY -
-
-            rect.top
-
+        e.clientY -
+        rect.top
 
     };
 
 }
 
-
-// ======================================================
-// TOUCH POSITION
-// ======================================================
-
-function getTouchPos(e) {
-
-
-    const rect =
-
-        signature.getBoundingClientRect();
-
-
-    const touch =
-
-        e.touches[0];
-
-
-    return {
-
-
-        x:
-
-            touch.clientX -
-
-            rect.left,
-
-
-        y:
-
-            touch.clientY -
-
-            rect.top
-
-
-    };
-
-}
-
-
-// ======================================================
-// START MOUSE
-// ======================================================
 
 function startMouse(e) {
 
 
-    drawing = true;
+    const signature =
+    document.getElementById(
+        "signature"
+    );
 
-    signed = true;
+
+    const signCtx =
+    signature.getContext(
+        "2d"
+    );
+
+
+    drawing =
+    true;
+
+
+    signed =
+    true;
 
 
     const pos =
-
-        getMousePos(e);
+    getMousePos(
+        e
+    );
 
 
     signCtx.beginPath();
@@ -1275,21 +1042,34 @@ function startMouse(e) {
 }
 
 
-// ======================================================
-// DRAW MOUSE
-// ======================================================
-
 function drawMouse(e) {
 
 
-    if (!drawing)
+    if (
+        !drawing
+    ) {
 
         return;
 
+    }
+
+
+    const signature =
+    document.getElementById(
+        "signature"
+    );
+
+
+    const signCtx =
+    signature.getContext(
+        "2d"
+    );
+
 
     const pos =
-
-        getMousePos(e);
+    getMousePos(
+        e
+    );
 
 
     signCtx.lineTo(
@@ -1307,8 +1087,40 @@ function drawMouse(e) {
 
 
 // ======================================================
-// START TOUCH
+// TOUCH SIGNATURE
 // ======================================================
+
+function getTouchPos(e) {
+
+
+    const signature =
+    document.getElementById(
+        "signature"
+    );
+
+
+    const rect =
+    signature.getBoundingClientRect();
+
+
+    const touch =
+    e.touches[0];
+
+
+    return {
+
+        x:
+        touch.clientX -
+        rect.left,
+
+        y:
+        touch.clientY -
+        rect.top
+
+    };
+
+}
+
 
 function startTouch(e) {
 
@@ -1316,14 +1128,30 @@ function startTouch(e) {
     e.preventDefault();
 
 
-    drawing = true;
+    const signature =
+    document.getElementById(
+        "signature"
+    );
 
-    signed = true;
+
+    const signCtx =
+    signature.getContext(
+        "2d"
+    );
+
+
+    drawing =
+    true;
+
+
+    signed =
+    true;
 
 
     const pos =
-
-        getTouchPos(e);
+    getTouchPos(
+        e
+    );
 
 
     signCtx.beginPath();
@@ -1340,24 +1168,37 @@ function startTouch(e) {
 }
 
 
-// ======================================================
-// DRAW TOUCH
-// ======================================================
-
 function drawTouch(e) {
 
 
     e.preventDefault();
 
 
-    if (!drawing)
+    if (
+        !drawing
+    ) {
 
         return;
 
+    }
+
+
+    const signature =
+    document.getElementById(
+        "signature"
+    );
+
+
+    const signCtx =
+    signature.getContext(
+        "2d"
+    );
+
 
     const pos =
-
-        getTouchPos(e);
+    getTouchPos(
+        e
+    );
 
 
     signCtx.lineTo(
@@ -1381,10 +1222,29 @@ function drawTouch(e) {
 function stopDrawing() {
 
 
-    drawing = false;
+    drawing =
+    false;
 
 
-    signCtx.beginPath();
+    const signature =
+    document.getElementById(
+        "signature"
+    );
+
+
+    if (
+        signature
+    ) {
+
+        const signCtx =
+        signature.getContext(
+            "2d"
+        );
+
+
+        signCtx.beginPath();
+
+    }
 
 }
 
@@ -1396,9 +1256,20 @@ function stopDrawing() {
 function clearSignature() {
 
 
-    signCtx.fillStyle =
+    const signature =
+    document.getElementById(
+        "signature"
+    );
 
-        "white";
+
+    const signCtx =
+    signature.getContext(
+        "2d"
+    );
+
+
+    signCtx.fillStyle =
+    "white";
 
 
     signCtx.fillRect(
@@ -1414,22 +1285,20 @@ function clearSignature() {
     );
 
 
-    signed = false;
+    signed =
+    false;
 
 
     signCtx.strokeStyle =
-
-        "black";
+    "black";
 
 
     signCtx.lineWidth =
-
-        2;
+    2;
 
 
     signCtx.lineCap =
-
-        "round";
+    "round";
 
 }
 
@@ -1441,19 +1310,8 @@ function clearSignature() {
 function attendanceOpen() {
 
 
-    if (!settings) {
-
-        return false;
-
-    }
-
-
     if (
-
-        !settings.startTime ||
-
-        !settings.endTime
-
+        !settings
     ) {
 
         return false;
@@ -1462,79 +1320,67 @@ function attendanceOpen() {
 
 
     const now =
-
-        new Date();
+    new Date();
 
 
     const current =
 
-        now.getHours() *
+    now.getHours() *
+    60
 
-        60 +
+    +
 
-        now.getMinutes();
+    now.getMinutes();
 
 
     const start =
-
+    String(
         settings.startTime
-
-            .toString()
-
-            .split(":");
+    ).split(":");
 
 
     const end =
-
+    String(
         settings.endTime
-
-            .toString()
-
-            .split(":");
+    ).split(":");
 
 
     const startMinutes =
 
-        parseInt(
+    parseInt(
+        start[0]
+    ) *
+    60
 
-            start[0]
+    +
 
-        ) *
-
-        60 +
-
-        parseInt(
-
-            start[1]
-
-        );
+    parseInt(
+        start[1]
+    );
 
 
     const endMinutes =
 
-        parseInt(
+    parseInt(
+        end[0]
+    ) *
+    60
 
-            end[0]
+    +
 
-        ) *
-
-        60 +
-
-        parseInt(
-
-            end[1]
-
-        );
+    parseInt(
+        end[1]
+    );
 
 
     return (
 
         current >=
+        startMinutes
 
-        startMinutes &&
+        &&
 
         current <=
-
         endMinutes
 
     );
@@ -1549,106 +1395,76 @@ function attendanceOpen() {
 async function submitAttendance() {
 
 
-    // ==========================
-    // CHECK SETTINGS
-    // ==========================
+    // Check settings
 
-    if (!settingsLoaded || !settings) {
-
+    if (
+        !settings
+    ) {
 
         alert(
-
-            "⏳ Attendance settings are still loading.\n\n" +
-
-            "Please wait a moment and try again."
-
+            "Attendance settings are still loading. Please wait."
         );
-
 
         return;
 
     }
 
 
-    // ==========================
-    // CHECK STATUS
-    // ==========================
+    // Check status
 
     if (
-
-        settings.status !==
-
+        String(
+            settings.status
+        ).toUpperCase()
+        !==
         "OPEN"
-
     ) {
 
-
         alert(
-
             "Attendance is currently CLOSED."
-
         );
-
 
         return;
 
     }
 
 
-    // ==========================
-    // CHECK TIME
-    // ==========================
+    // Check time
 
-    if (!attendanceOpen()) {
-
+    if (
+        !attendanceOpen()
+    ) {
 
         alert(
-
             "Attendance is outside the allowed time."
-
         );
-
 
         return;
 
     }
 
 
-    // ==========================
-    // CHECK GPS
-    // ==========================
+    // Check GPS
 
     if (
-
         latitude === null
-
     ) {
-
 
         alert(
-
             "GPS not detected."
-
         );
-
 
         return;
 
     }
 
 
-    // ==========================
-    // CHECK DISTANCE
-    // ==========================
+    // Check distance
 
     if (
-
         distanceMeters >
-
         ALLOWED_RADIUS
-
     ) {
-
 
         alert(
 
@@ -1660,299 +1476,220 @@ async function submitAttendance() {
 
         );
 
-
         return;
 
     }
 
 
-    // ==========================
-    // CHECK PHOTO
-    // ==========================
+    // Check selfie
 
-    if (!photoTaken) {
-
+    if (
+        !photoTaken
+    ) {
 
         alert(
-
             "Please capture your selfie."
-
         );
-
 
         return;
 
     }
 
 
-    // ==========================
-    // CHECK SIGNATURE
-    // ==========================
+    // Check signature
 
-    if (!signed) {
-
+    if (
+        !signed
+    ) {
 
         alert(
-
             "Please provide your signature."
-
         );
-
 
         return;
 
     }
 
 
-    // ==========================
-    // DATE
-    // ==========================
+    // Date
 
     const today =
-
-        new Date()
-
-            .toLocaleDateString();
+    new Date()
+    .toLocaleDateString();
 
 
-    // ==========================
-    // ATTENDANCE KEY
-    // ==========================
+    // Attendance key
 
     const attendanceKey =
 
-        student.id +
+    student.id +
 
-        "_" +
+    "_" +
 
-        today;
+    today;
 
 
-    // ==========================
-    // ATTENDANCE DATA
-    // ==========================
+    // Create attendance object
 
     const attendance = {
 
 
         studentNumber:
-
-            student.id,
+        student.id,
 
 
         name:
-
-            student.name,
+        student.name,
 
 
         course:
-
-            student.course,
+        student.course || "",
 
 
         flight:
+        student.flight || "",
 
-            student.flight,
+
+        topic:
+        student.topic || "",
 
 
         date:
-
-            today,
+        today,
 
 
         time:
-
-            new Date()
-
-                .toLocaleTimeString(),
+        new Date()
+        .toLocaleTimeString(),
 
 
         status:
-
-            document
-
-                .getElementById(
-
-                    "status"
-
-                )
-
-                .value,
+        document.getElementById(
+            "status"
+        ).value,
 
 
         latitude:
-
-            latitude,
+        latitude,
 
 
         longitude:
-
-            longitude,
+        longitude,
 
 
         distance:
-
-            distanceMeters
-
-                .toFixed(2),
+        distanceMeters
+        .toFixed(2),
 
 
         address:
-
-            document
-
-                .getElementById(
-
-                    "address"
-
-                )
-
-                .textContent,
+        document.getElementById(
+            "address"
+        ).textContent,
 
 
         photo:
-
-            document
-
-                .getElementById(
-
-                    "photo"
-
-                )
-
-                .toDataURL(
-
-                    "image/png"
-
-                ),
+        document.getElementById(
+            "photo"
+        ).toDataURL(
+            "image/png"
+        ),
 
 
         signature:
-
-            signature
-
-                .toDataURL(
-
-                    "image/png"
-
-                ),
+        document.getElementById(
+            "signature"
+        ).toDataURL(
+            "image/png"
+        ),
 
 
         photoFileName:
 
+        student.id +
 
-            student.id +
+        "_" +
 
-            "_" +
+        today.replace(
+            /\//g,
+            "-"
+        ) +
 
-            today.replace(
-
-                /\//g,
-
-                "-"
-
-            ) +
-
-            "_selfie.png",
+        "_selfie.png",
 
 
         signatureFileName:
 
+        student.id +
 
-            student.id +
+        "_" +
 
-            "_" +
+        today.replace(
+            /\//g,
+            "-"
+        ) +
 
-            today.replace(
-
-                /\//g,
-
-                "-"
-
-            ) +
-
-            "_signature.png"
+        "_signature.png"
 
 
     };
 
 
-    // ==========================
-    // SAVE LOCALLY
-    // ==========================
+    // Save locally
 
     localStorage.setItem(
 
         attendanceKey,
 
         JSON.stringify(
-
             attendance
-
         )
 
     );
 
 
-    // ==========================
-    // SUBMIT TO GOOGLE APPS SCRIPT
-    // ==========================
+    // ==================================================
+    // SEND TO GOOGLE APPS SCRIPT
+    // ==================================================
 
     try {
 
 
         const response =
+        await fetch(
 
-            await fetch(
+            APPS_SCRIPT_URL,
 
-                SUBMIT_URL,
+            {
 
-                {
-
-
-                    method:
-
-                        "POST",
+                method:
+                "POST",
 
 
-                    headers: {
+                headers: {
+
+                    "Content-Type":
+                    "text/plain;charset=utf-8"
+
+                },
 
 
-                        "Content-Type":
+                body:
+                JSON.stringify(
+                    attendance
+                )
 
-                            "text/plain;charset=utf-8"
+            }
 
-
-                    },
-
-
-                    body:
-
-                        JSON.stringify(
-
-                            attendance
-
-                        )
-
-
-                }
-
-            );
+        );
 
 
         const result =
+        await response.json();
 
-            await response.json();
-
-
-        // ==========================
-        // SUCCESS
-        // ==========================
 
         if (
-
             result.success
-
         ) {
 
 
@@ -1964,16 +1701,10 @@ async function submitAttendance() {
 
 
             window.location.href =
-
-                "dashboard.html";
+            "dashboard.html";
 
 
         }
-
-
-        // ==========================
-        // ERROR FROM APPS SCRIPT
-        // ==========================
 
         else {
 
@@ -1983,11 +1714,9 @@ async function submitAttendance() {
                 "❌ " +
 
                 (
-
                     result.message ||
 
                     "Attendance submission failed."
-
                 )
 
             );
@@ -1997,24 +1726,33 @@ async function submitAttendance() {
 
     }
 
-    catch (error) {
+    catch(error) {
 
 
         console.error(
-
-            "SUBMISSION ERROR:",
-
             error
-
         );
 
 
         alert(
 
-            "❌ Failed to connect to Google Sheets."
+            "❌ Failed to connect to Google Sheets.\n\n" +
+
+            error.message
 
         );
 
     }
 
 }
+
+
+// ======================================================
+// START SYSTEM
+// ======================================================
+
+// IMPORTANT:
+// Settings must finish loading first.
+// Only then will GPS and camera start.
+
+loadSettings();
