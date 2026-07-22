@@ -14,50 +14,10 @@ const APPS_SCRIPT_URL =
 
 
 // ======================================================
-// GET LOGGED IN STUDENT
+// GLOBAL VARIABLES
 // ======================================================
 
-const student =
-JSON.parse(
-    localStorage.getItem("student")
-);
-
-
-if (!student) {
-
-    window.location.href =
-    "login.html";
-
-}
-
-
-// ======================================================
-// DISPLAY STUDENT INFORMATION
-// ======================================================
-
-document.getElementById(
-    "cadetName"
-).textContent =
-student.name;
-
-
-document.getElementById(
-    "studentNumber"
-).textContent =
-"Student Number: " +
-student.id;
-
-
-document.getElementById(
-    "flight"
-).textContent =
-"Flight: " +
-student.flight;
-
-
-// ======================================================
-// SETTINGS VARIABLES
-// ======================================================
+let student = null;
 
 let settings = null;
 
@@ -67,28 +27,13 @@ let TRAINING_LNG = 0;
 
 let ALLOWED_RADIUS = 200;
 
-
-// ======================================================
-// GPS VARIABLES
-// ======================================================
-
 let latitude = null;
 
 let longitude = null;
 
 let distanceMeters = 999999;
 
-
-// ======================================================
-// CAMERA VARIABLES
-// ======================================================
-
 let photoTaken = false;
-
-
-// ======================================================
-// SIGNATURE VARIABLES
-// ======================================================
 
 let drawing = false;
 
@@ -96,81 +41,183 @@ let signed = false;
 
 
 // ======================================================
-// LOAD SETTINGS
+// GET LOGGED IN STUDENT
+// ======================================================
+
+try {
+
+    student =
+        JSON.parse(
+            localStorage.getItem("student")
+        );
+
+} catch (error) {
+
+    student = null;
+
+}
+
+
+if (!student) {
+
+    window.location.href =
+        "login.html";
+
+}
+
+
+// ======================================================
+// DISPLAY STUDENT INFORMATION
+// ======================================================
+
+function displayStudentInformation() {
+
+    const cadetName =
+        document.getElementById(
+            "cadetName"
+        );
+
+    const studentNumber =
+        document.getElementById(
+            "studentNumber"
+        );
+
+    const flight =
+        document.getElementById(
+            "flight"
+        );
+
+
+    if (cadetName) {
+
+        cadetName.textContent =
+            student.name || "";
+
+    }
+
+
+    if (studentNumber) {
+
+        studentNumber.textContent =
+            "Student Number: " +
+            (student.id || "");
+
+    }
+
+
+    if (flight) {
+
+        flight.textContent =
+            "Flight: " +
+            (student.flight || "");
+
+    }
+
+}
+
+
+displayStudentInformation();
+
+
+// ======================================================
+// LOAD SETTINGS FROM GOOGLE APPS SCRIPT
 // ======================================================
 
 async function loadSettings() {
 
     const gpsStatus =
-        document.getElementById("gpsStatus");
+        document.getElementById(
+            "gpsStatus"
+        );
+
 
     if (gpsStatus) {
+
         gpsStatus.textContent =
-            "⏳ Connecting to attendance server...";
+            "⏳ Loading attendance settings...";
+
     }
+
 
     try {
 
-        console.log("STEP 1: Starting request");
+        console.log(
+            "Connecting to Apps Script..."
+        );
 
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: "GET",
-            cache: "no-store",
-            redirect: "follow"
-        });
+
+        const response =
+            await fetch(
+                APPS_SCRIPT_URL +
+                "?t=" +
+                Date.now(),
+                {
+                    method: "GET",
+                    cache: "no-store",
+                    redirect: "follow"
+                }
+            );
+
 
         console.log(
-            "STEP 2: Response received",
-            response.status,
-            response.type,
-            response.url
+            "Apps Script response:",
+            response.status
         );
+
 
         if (!response.ok) {
 
             throw new Error(
-                "HTTP ERROR " +
+                "Server returned HTTP " +
                 response.status
             );
 
         }
 
+
         const text =
             await response.text();
 
+
         console.log(
-            "STEP 3: Raw response:",
+            "Apps Script raw response:",
             text
         );
+
 
         if (!text) {
 
             throw new Error(
-                "Google Apps Script returned an empty response."
+                "Apps Script returned an empty response."
             );
 
         }
 
+
         let data;
+
 
         try {
 
             data =
                 JSON.parse(text);
 
-        } catch (jsonError) {
+        } catch (error) {
 
             throw new Error(
-                "Invalid JSON received from Apps Script: " +
-                text.substring(0, 200)
+                "The response from Apps Script is not valid JSON."
             );
 
         }
 
+
         console.log(
-            "STEP 4: Parsed settings:",
+            "Settings received:",
             data
         );
+
+
+        // Check Apps Script error
 
         if (
             data.success === false
@@ -178,152 +225,134 @@ async function loadSettings() {
 
             throw new Error(
                 data.message ||
-                "Apps Script returned success=false."
+                "Apps Script returned an error."
             );
 
         }
 
+
+        // Check required settings
+
         if (
-            !data.latitude ||
-            !data.longitude
+            data.latitude === undefined ||
+            data.longitude === undefined
         ) {
 
             throw new Error(
-                "Settings response does not contain latitude or longitude."
+                "Latitude or longitude is missing from the attendance settings."
             );
 
         }
 
-        settings = data;
+
+        if (
+            data.status === undefined
+        ) {
+
+            throw new Error(
+                "Attendance status is missing from the settings."
+            );
+
+        }
+
+
+        // Save settings
+
+        settings =
+            data;
+
+
+        // Convert coordinates
 
         TRAINING_LAT =
             parseFloat(
-                data.latitude
+                settings.latitude
             );
+
 
         TRAINING_LNG =
             parseFloat(
-                data.longitude
+                settings.longitude
             );
+
+
+        // Convert radius
 
         ALLOWED_RADIUS =
             parseFloat(
-                data.radius
+                settings.radius
             ) || 200;
 
+
+        // Validate coordinates
+
+        if (
+            isNaN(TRAINING_LAT) ||
+            isNaN(TRAINING_LNG)
+        ) {
+
+            throw new Error(
+                "Training ground coordinates are invalid."
+            );
+
+        }
+
+
         console.log(
-            "STEP 5: Settings successfully loaded."
+            "Attendance settings loaded successfully."
         );
+
 
         console.log(
             "Latitude:",
             TRAINING_LAT
         );
 
+
         console.log(
             "Longitude:",
             TRAINING_LNG
         );
+
 
         console.log(
             "Radius:",
             ALLOWED_RADIUS
         );
 
-        if (gpsStatus) {
 
-            gpsStatus.textContent =
-                "🟡 Detecting GPS...";
-
-        }
+        // Start system
 
         initializeAttendance();
 
-    }
 
-    catch (error) {
+    } catch (error) {
 
-        console.error(
-            "========== SETTINGS ERROR =========="
-        );
 
         console.error(
+            "Attendance settings error:",
             error
-        );
-
-        console.error(
-            "Message:",
-            error.message
-        );
-
-        console.error(
-            "Name:",
-            error.name
-        );
-
-        console.error(
-            "===================================="
         );
 
 
         if (gpsStatus) {
 
             gpsStatus.textContent =
-                "🔴 SETTINGS ERROR: " +
-                error.message;
+                "🔴 Unable to load attendance settings.";
 
         }
 
 
         alert(
 
-            "ATTENDANCE SETTINGS ERROR\n\n" +
+            "❌ Unable to load attendance settings.\n\n" +
 
+            "Error: " +
             error.message +
 
-            "\n\nPlease send me a screenshot of this exact message."
+            "\n\nPlease check your internet connection or contact the administrator."
 
         );
-
-    }
-
-}
-        // ==================================================
-        // SETTINGS LOADED
-        // START ATTENDANCE SYSTEM
-        // ==================================================
-
-        initializeAttendance();
-
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "Settings Error:",
-            error
-        );
-
-
-        alert(
-            "❌ Unable to load attendance settings.\n\n" +
-            "Please check your internet connection or contact the administrator."
-        );
-
-
-        const gpsStatus =
-        document.getElementById(
-            "gpsStatus"
-        );
-
-
-        if (gpsStatus) {
-
-            gpsStatus.textContent =
-            "🔴 Unable to load attendance settings.";
-
-        }
 
     }
 
@@ -337,17 +366,21 @@ async function loadSettings() {
 function initializeAttendance() {
 
     console.log(
-        "Initializing attendance system..."
+        "Initializing ROTC attendance system..."
     );
 
 
-    // Start clock
+    // Start date and time
 
     updateClock();
 
+
     setInterval(
+
         updateClock,
+
         1000
+
     );
 
 
@@ -365,36 +398,35 @@ function initializeAttendance() {
 
     setupSignature();
 
-
 }
 
 
 // ======================================================
-// DATE & TIME
+// DATE AND TIME
 // ======================================================
 
 function updateClock() {
 
     const now =
-    new Date();
+        new Date();
 
 
     const dateElement =
-    document.getElementById(
-        "date"
-    );
+        document.getElementById(
+            "date"
+        );
 
 
     const timeElement =
-    document.getElementById(
-        "time"
-    );
+        document.getElementById(
+            "time"
+        );
 
 
     if (dateElement) {
 
         dateElement.value =
-        now.toLocaleDateString();
+            now.toLocaleDateString();
 
     }
 
@@ -402,7 +434,7 @@ function updateClock() {
     if (timeElement) {
 
         timeElement.value =
-        now.toLocaleTimeString();
+            now.toLocaleTimeString();
 
     }
 
@@ -415,24 +447,38 @@ function updateClock() {
 
 function startGPS() {
 
+    const gpsStatus =
+        document.getElementById(
+            "gpsStatus"
+        );
+
+
     if (
         !navigator.geolocation
     ) {
 
-        document.getElementById(
-            "gpsStatus"
-        ).textContent =
-        "🔴 GPS NOT SUPPORTED";
+        if (gpsStatus) {
+
+            gpsStatus.textContent =
+                "🔴 GPS NOT SUPPORTED";
+
+        }
+
+        alert(
+            "Your browser does not support GPS location."
+        );
 
         return;
 
     }
 
 
-    document.getElementById(
-        "gpsStatus"
-    ).textContent =
-    "🟡 Detecting GPS...";
+    if (gpsStatus) {
+
+        gpsStatus.textContent =
+            "🟡 Detecting GPS...";
+
+    }
 
 
     navigator.geolocation.getCurrentPosition(
@@ -440,87 +486,110 @@ function startGPS() {
         function(position) {
 
 
-            // Get coordinates
-
             latitude =
-            position.coords.latitude;
+                position.coords.latitude;
 
 
             longitude =
-            position.coords.longitude;
+                position.coords.longitude;
 
 
-            // Display GPS status
+            if (gpsStatus) {
 
-            document.getElementById(
-                "gpsStatus"
-            ).textContent =
-            "🟢 GPS VERIFIED";
+                gpsStatus.textContent =
+                    "🟢 GPS VERIFIED";
 
-
-            // Display latitude
-
-            document.getElementById(
-                "latitude"
-            ).textContent =
-            latitude.toFixed(6);
+            }
 
 
-            // Display longitude
+            const latitudeElement =
+                document.getElementById(
+                    "latitude"
+                );
 
-            document.getElementById(
-                "longitude"
-            ).textContent =
-            longitude.toFixed(6);
+
+            const longitudeElement =
+                document.getElementById(
+                    "longitude"
+                );
+
+
+            if (latitudeElement) {
+
+                latitudeElement.textContent =
+                    latitude.toFixed(6);
+
+            }
+
+
+            if (longitudeElement) {
+
+                longitudeElement.textContent =
+                    longitude.toFixed(6);
+
+            }
 
 
             // Calculate distance
 
             distanceMeters =
-            calculateDistance(
+                calculateDistance(
 
-                latitude,
+                    latitude,
 
-                longitude,
+                    longitude,
 
-                TRAINING_LAT,
+                    TRAINING_LAT,
 
-                TRAINING_LNG
+                    TRAINING_LNG
 
-            );
-
-
-            // Display distance
-
-            document.getElementById(
-                "distance"
-            ).textContent =
-            distanceMeters.toFixed(1) +
-            " meters";
+                );
 
 
-            // Check radius
-
-            if (
-                distanceMeters <=
-                ALLOWED_RADIUS
-            ) {
-
+            const distanceElement =
                 document.getElementById(
-                    "validationStatus"
-                ).innerHTML =
-                "✅ Inside Allowed Area";
+                    "distance"
+                );
+
+
+            if (distanceElement) {
+
+                distanceElement.textContent =
+                    distanceMeters.toFixed(1) +
+                    " meters";
 
             }
 
-            else {
 
+            // Check allowed radius
+
+            const validationStatus =
                 document.getElementById(
                     "validationStatus"
-                ).innerHTML =
-                "❌ Outside " +
-                ALLOWED_RADIUS +
-                " Meter Radius";
+                );
+
+
+            if (
+                validationStatus
+            ) {
+
+
+                if (
+                    distanceMeters <=
+                    ALLOWED_RADIUS
+                ) {
+
+                    validationStatus.innerHTML =
+                        "✅ Inside Allowed Area";
+
+                } else {
+
+                    validationStatus.innerHTML =
+                        "❌ Outside " +
+                        ALLOWED_RADIUS +
+                        " Meter Radius";
+
+                }
 
             }
 
@@ -528,12 +597,16 @@ function startGPS() {
             // Get address
 
             getAddress(
+
                 latitude,
+
                 longitude
+
             );
 
 
         },
+
 
         function(error) {
 
@@ -544,29 +617,35 @@ function startGPS() {
             );
 
 
-            document.getElementById(
-                "gpsStatus"
-            ).textContent =
-            "🔴 GPS NOT AVAILABLE";
+            if (gpsStatus) {
+
+                gpsStatus.textContent =
+                    "🔴 GPS NOT AVAILABLE";
+
+            }
 
 
             alert(
+
                 "Unable to access your location.\n\n" +
-                "Please make sure Location/GPS is turned ON and allow location permission for the website."
+
+                "Please make sure Location/GPS is turned ON and allow location permission for this website."
+
             );
 
         },
 
+
         {
 
             enableHighAccuracy:
-            true,
+                true,
 
             timeout:
-            15000,
+                15000,
 
             maximumAge:
-            0
+                0
 
         }
 
@@ -580,84 +659,93 @@ function startGPS() {
 // ======================================================
 
 function calculateDistance(
+
     lat1,
+
     lon1,
+
     lat2,
+
     lon2
+
 ) {
 
 
     const R =
-    6371000;
+        6371000;
 
 
     const dLat =
-    (
-        lat2 -
-        lat1
-    ) *
-    Math.PI /
-    180;
+        (
+            lat2 -
+            lat1
+        ) *
+        Math.PI /
+        180;
 
 
     const dLon =
-    (
-        lon2 -
-        lon1
-    ) *
-    Math.PI /
-    180;
+        (
+            lon2 -
+            lon1
+        ) *
+        Math.PI /
+        180;
 
 
     const a =
 
-    Math.sin(
-        dLat / 2
-    ) *
-    Math.sin(
-        dLat / 2
-    )
+        Math.sin(
+            dLat / 2
+        ) *
 
-    +
+        Math.sin(
+            dLat / 2
+        )
 
-    Math.cos(
-        lat1 *
-        Math.PI /
-        180
-    )
+        +
 
-    *
+        Math.cos(
+            lat1 *
+            Math.PI /
+            180
+        )
 
-    Math.cos(
-        lat2 *
-        Math.PI /
-        180
-    )
+        *
 
-    *
+        Math.cos(
+            lat2 *
+            Math.PI /
+            180
+        )
 
-    Math.sin(
-        dLon / 2
-    )
+        *
 
-    *
+        Math.sin(
+            dLon / 2
+        )
 
-    Math.sin(
-        dLon / 2
-    );
+        *
+
+        Math.sin(
+            dLon / 2
+        );
 
 
     const c =
-    2 *
-    Math.atan2(
 
-        Math.sqrt(a),
+        2 *
 
-        Math.sqrt(
-            1 - a
-        )
+        Math.atan2(
 
-    );
+            Math.sqrt(a),
+
+            Math.sqrt(
+                1 -
+                a
+            )
+
+        );
 
 
     return R * c;
@@ -670,8 +758,11 @@ function calculateDistance(
 // ======================================================
 
 async function getAddress(
+
     lat,
+
     lng
+
 ) {
 
     try {
@@ -679,39 +770,45 @@ async function getAddress(
 
         const url =
 
-        "https://nominatim.openstreetmap.org/reverse" +
+            "https://nominatim.openstreetmap.org/reverse" +
 
-        "?format=jsonv2" +
+            "?format=jsonv2" +
 
-        "&lat=" +
-        lat +
+            "&lat=" +
+            lat +
 
-        "&lon=" +
-        lng;
+            "&lon=" +
+            lng;
 
 
         const response =
-        await fetch(
-            url
-        );
+            await fetch(
+                url
+            );
 
 
         const data =
-        await response.json();
+            await response.json();
 
 
-        document.getElementById(
-            "address"
-        ).textContent =
-
-        data.display_name ||
-
-        "Address unavailable.";
+        const addressElement =
+            document.getElementById(
+                "address"
+            );
 
 
-    }
+        if (addressElement) {
 
-    catch(error) {
+            addressElement.textContent =
+
+                data.display_name ||
+
+                "Address unavailable.";
+
+        }
+
+
+    } catch (error) {
 
 
         console.error(
@@ -720,11 +817,18 @@ async function getAddress(
         );
 
 
-        document.getElementById(
-            "address"
-        ).textContent =
+        const addressElement =
+            document.getElementById(
+                "address"
+            );
 
-        "Unable to determine address.";
+
+        if (addressElement) {
+
+            addressElement.textContent =
+                "Unable to determine address.";
+
+        }
 
     }
 
@@ -739,14 +843,12 @@ function startCamera() {
 
 
     const video =
-    document.getElementById(
-        "video"
-    );
+        document.getElementById(
+            "video"
+        );
 
 
-    if (
-        !video
-    ) {
+    if (!video) {
 
         console.error(
             "Video element not found."
@@ -772,42 +874,51 @@ function startCamera() {
 
 
     navigator.mediaDevices
-    .getUserMedia({
+        .getUserMedia({
 
-        video:
-        true
+            video: true
 
-    })
+        })
 
-    .then(
+        .then(
 
-        function(stream) {
-
-            video.srcObject =
-            stream;
-
-        }
-
-    )
-
-    .catch(
-
-        function(error) {
-
-            console.error(
-                "Camera Error:",
-                error
-            );
+            function(stream) {
 
 
-            alert(
-                "Unable to access camera.\n\n" +
-                "Please allow camera permission for the website."
-            );
+                video.srcObject =
+                    stream;
 
-        }
 
-    );
+                console.log(
+                    "Camera started."
+                );
+
+            }
+
+        )
+
+        .catch(
+
+            function(error) {
+
+
+                console.error(
+                    "Camera Error:",
+                    error
+                );
+
+
+                alert(
+
+                    "Unable to access camera.\n\n" +
+
+                    "Please allow camera permission for this website."
+
+                );
+
+            }
+
+        );
 
 }
 
@@ -820,15 +931,15 @@ function takePhoto() {
 
 
     const canvas =
-    document.getElementById(
-        "photo"
-    );
+        document.getElementById(
+            "photo"
+        );
 
 
     const video =
-    document.getElementById(
-        "video"
-    );
+        document.getElementById(
+            "video"
+        );
 
 
     if (
@@ -846,9 +957,9 @@ function takePhoto() {
 
 
     const ctx =
-    canvas.getContext(
-        "2d"
-    );
+        canvas.getContext(
+            "2d"
+        );
 
 
     ctx.drawImage(
@@ -867,7 +978,7 @@ function takePhoto() {
 
 
     photoTaken =
-    true;
+        true;
 
 
     alert(
@@ -885,14 +996,12 @@ function setupSignature() {
 
 
     const signature =
-    document.getElementById(
-        "signature"
-    );
+        document.getElementById(
+            "signature"
+        );
 
 
-    if (
-        !signature
-    ) {
+    if (!signature) {
 
         console.error(
             "Signature canvas not found."
@@ -904,15 +1013,13 @@ function setupSignature() {
 
 
     const signCtx =
-    signature.getContext(
-        "2d"
-    );
+        signature.getContext(
+            "2d"
+        );
 
-
-    // White background
 
     signCtx.fillStyle =
-    "white";
+        "white";
 
 
     signCtx.fillRect(
@@ -929,18 +1036,16 @@ function setupSignature() {
 
 
     signCtx.strokeStyle =
-    "black";
+        "black";
 
 
     signCtx.lineWidth =
-    2;
+        2;
 
 
     signCtx.lineCap =
-    "round";
+        "round";
 
-
-    // Desktop
 
     signature.addEventListener(
 
@@ -978,8 +1083,6 @@ function setupSignature() {
     );
 
 
-    // Mobile
-
     signature.addEventListener(
 
         "touchstart",
@@ -987,8 +1090,7 @@ function setupSignature() {
         startTouch,
 
         {
-            passive:
-            false
+            passive: false
         }
 
     );
@@ -1001,8 +1103,7 @@ function setupSignature() {
         drawTouch,
 
         {
-            passive:
-            false
+            passive: false
         }
 
     );
@@ -1027,24 +1128,24 @@ function getMousePos(e) {
 
 
     const signature =
-    document.getElementById(
-        "signature"
-    );
+        document.getElementById(
+            "signature"
+        );
 
 
     const rect =
-    signature.getBoundingClientRect();
+        signature.getBoundingClientRect();
 
 
     return {
 
         x:
-        e.clientX -
-        rect.left,
+            e.clientX -
+            rect.left,
 
         y:
-        e.clientY -
-        rect.top
+            e.clientY -
+            rect.top
 
     };
 
@@ -1055,29 +1156,29 @@ function startMouse(e) {
 
 
     const signature =
-    document.getElementById(
-        "signature"
-    );
+        document.getElementById(
+            "signature"
+        );
 
 
     const signCtx =
-    signature.getContext(
-        "2d"
-    );
+        signature.getContext(
+            "2d"
+        );
 
 
     drawing =
-    true;
+        true;
 
 
     signed =
-    true;
+        true;
 
 
     const pos =
-    getMousePos(
-        e
-    );
+        getMousePos(
+            e
+        );
 
 
     signCtx.beginPath();
@@ -1107,21 +1208,21 @@ function drawMouse(e) {
 
 
     const signature =
-    document.getElementById(
-        "signature"
-    );
+        document.getElementById(
+            "signature"
+        );
 
 
     const signCtx =
-    signature.getContext(
-        "2d"
-    );
+        signature.getContext(
+            "2d"
+        );
 
 
     const pos =
-    getMousePos(
-        e
-    );
+        getMousePos(
+            e
+        );
 
 
     signCtx.lineTo(
@@ -1146,28 +1247,28 @@ function getTouchPos(e) {
 
 
     const signature =
-    document.getElementById(
-        "signature"
-    );
+        document.getElementById(
+            "signature"
+        );
 
 
     const rect =
-    signature.getBoundingClientRect();
+        signature.getBoundingClientRect();
 
 
     const touch =
-    e.touches[0];
+        e.touches[0];
 
 
     return {
 
         x:
-        touch.clientX -
-        rect.left,
+            touch.clientX -
+            rect.left,
 
         y:
-        touch.clientY -
-        rect.top
+            touch.clientY -
+            rect.top
 
     };
 
@@ -1181,29 +1282,29 @@ function startTouch(e) {
 
 
     const signature =
-    document.getElementById(
-        "signature"
-    );
+        document.getElementById(
+            "signature"
+        );
 
 
     const signCtx =
-    signature.getContext(
-        "2d"
-    );
+        signature.getContext(
+            "2d"
+        );
 
 
     drawing =
-    true;
+        true;
 
 
     signed =
-    true;
+        true;
 
 
     const pos =
-    getTouchPos(
-        e
-    );
+        getTouchPos(
+            e
+        );
 
 
     signCtx.beginPath();
@@ -1236,21 +1337,21 @@ function drawTouch(e) {
 
 
     const signature =
-    document.getElementById(
-        "signature"
-    );
+        document.getElementById(
+            "signature"
+        );
 
 
     const signCtx =
-    signature.getContext(
-        "2d"
-    );
+        signature.getContext(
+            "2d"
+        );
 
 
     const pos =
-    getTouchPos(
-        e
-    );
+        getTouchPos(
+            e
+        );
 
 
     signCtx.lineTo(
@@ -1275,23 +1376,22 @@ function stopDrawing() {
 
 
     drawing =
-    false;
+        false;
 
 
     const signature =
-    document.getElementById(
-        "signature"
-    );
+        document.getElementById(
+            "signature"
+        );
 
 
-    if (
-        signature
-    ) {
+    if (signature) {
+
 
         const signCtx =
-        signature.getContext(
-            "2d"
-        );
+            signature.getContext(
+                "2d"
+            );
 
 
         signCtx.beginPath();
@@ -1309,19 +1409,26 @@ function clearSignature() {
 
 
     const signature =
-    document.getElementById(
-        "signature"
-    );
+        document.getElementById(
+            "signature"
+        );
+
+
+    if (!signature) {
+
+        return;
+
+    }
 
 
     const signCtx =
-    signature.getContext(
-        "2d"
-    );
+        signature.getContext(
+            "2d"
+        );
 
 
     signCtx.fillStyle =
-    "white";
+        "white";
 
 
     signCtx.fillRect(
@@ -1338,19 +1445,19 @@ function clearSignature() {
 
 
     signed =
-    false;
+        false;
 
 
     signCtx.strokeStyle =
-    "black";
+        "black";
 
 
     signCtx.lineWidth =
-    2;
+        2;
 
 
     signCtx.lineCap =
-    "round";
+        "round";
 
 }
 
@@ -1362,9 +1469,7 @@ function clearSignature() {
 function attendanceOpen() {
 
 
-    if (
-        !settings
-    ) {
+    if (!settings) {
 
         return false;
 
@@ -1372,57 +1477,63 @@ function attendanceOpen() {
 
 
     const now =
-    new Date();
+        new Date();
 
 
     const current =
 
-    now.getHours() *
-    60
+        now.getHours() *
+        60
 
-    +
+        +
 
-    now.getMinutes();
+        now.getMinutes();
 
 
     const start =
-    String(
-        settings.startTime
-    ).split(":");
+        String(
+            settings.startTime
+        ).split(":");
 
 
     const end =
-    String(
-        settings.endTime
-    ).split(":");
+        String(
+            settings.endTime
+        ).split(":");
 
 
     const startMinutes =
 
-    parseInt(
-        start[0]
-    ) *
-    60
+        parseInt(
+            start[0],
+            10
+        ) *
 
-    +
+        60
 
-    parseInt(
-        start[1]
-    );
+        +
+
+        parseInt(
+            start[1],
+            10
+        );
 
 
     const endMinutes =
 
-    parseInt(
-        end[0]
-    ) *
-    60
+        parseInt(
+            end[0],
+            10
+        ) *
 
-    +
+        60
 
-    parseInt(
-        end[1]
-    );
+        +
+
+        parseInt(
+            end[1],
+            10
+        );
 
 
     return (
@@ -1447,11 +1558,7 @@ function attendanceOpen() {
 async function submitAttendance() {
 
 
-    // Check settings
-
-    if (
-        !settings
-    ) {
+    if (!settings) {
 
         alert(
             "Attendance settings are still loading. Please wait."
@@ -1462,14 +1569,16 @@ async function submitAttendance() {
     }
 
 
-    // Check status
-
     if (
+
         String(
             settings.status
         ).toUpperCase()
+
         !==
+
         "OPEN"
+
     ) {
 
         alert(
@@ -1480,8 +1589,6 @@ async function submitAttendance() {
 
     }
 
-
-    // Check time
 
     if (
         !attendanceOpen()
@@ -1496,8 +1603,6 @@ async function submitAttendance() {
     }
 
 
-    // Check GPS
-
     if (
         latitude === null
     ) {
@@ -1510,8 +1615,6 @@ async function submitAttendance() {
 
     }
 
-
-    // Check distance
 
     if (
         distanceMeters >
@@ -1533,8 +1636,6 @@ async function submitAttendance() {
     }
 
 
-    // Check selfie
-
     if (
         !photoTaken
     ) {
@@ -1547,8 +1648,6 @@ async function submitAttendance() {
 
     }
 
-
-    // Check signature
 
     if (
         !signed
@@ -1563,181 +1662,152 @@ async function submitAttendance() {
     }
 
 
-    // Date
-
     const today =
-    new Date()
-    .toLocaleDateString();
+        new Date()
+            .toLocaleDateString();
 
-
-    // Attendance key
 
     const attendanceKey =
 
-    student.id +
+        student.id +
 
-    "_" +
+        "_" +
 
-    today;
+        today;
 
-
-    // Create attendance object
 
     const attendance = {
 
 
         studentNumber:
-        student.id,
+            student.id,
 
 
         name:
-        student.name,
+            student.name,
 
 
         course:
-        student.course || "",
+            student.course || "",
 
 
         flight:
-        student.flight || "",
-
-
-        topic:
-        student.topic || "",
+            student.flight || "",
 
 
         date:
-        today,
+            today,
 
 
         time:
-        new Date()
-        .toLocaleTimeString(),
+            new Date()
+                .toLocaleTimeString(),
 
 
         status:
-        document.getElementById(
-            "status"
-        ).value,
+            document.getElementById(
+                "status"
+            ).value,
 
 
         latitude:
-        latitude,
+            latitude,
 
 
         longitude:
-        longitude,
+            longitude,
 
 
         distance:
-        distanceMeters
-        .toFixed(2),
+            distanceMeters
+                .toFixed(2),
 
 
         address:
-        document.getElementById(
-            "address"
-        ).textContent,
+            document.getElementById(
+                "address"
+            ).textContent,
 
 
         photo:
-        document.getElementById(
-            "photo"
-        ).toDataURL(
-            "image/png"
-        ),
+            document.getElementById(
+                "photo"
+            ).toDataURL(
+                "image/png"
+            ),
 
 
         signature:
-        document.getElementById(
-            "signature"
-        ).toDataURL(
-            "image/png"
-        ),
+            document.getElementById(
+                "signature"
+            ).toDataURL(
+                "image/png"
+            ),
 
 
         photoFileName:
 
-        student.id +
+            student.id +
 
-        "_" +
+            "_" +
 
-        today.replace(
-            /\//g,
-            "-"
-        ) +
+            today.replace(
+                /\//g,
+                "-"
+            ) +
 
-        "_selfie.png",
+            "_selfie.png",
 
 
         signatureFileName:
 
-        student.id +
+            student.id +
 
-        "_" +
+            "_" +
 
-        today.replace(
-            /\//g,
-            "-"
-        ) +
+            today.replace(
+                /\//g,
+                "-"
+            ) +
 
-        "_signature.png"
+            "_signature.png"
 
 
     };
 
 
-    // Save locally
-
-    localStorage.setItem(
-
-        attendanceKey,
-
-        JSON.stringify(
-            attendance
-        )
-
-    );
-
-
-    // ==================================================
-    // SEND TO GOOGLE APPS SCRIPT
-    // ==================================================
-
     try {
 
 
         const response =
-        await fetch(
+            await fetch(
 
-            APPS_SCRIPT_URL,
+                APPS_SCRIPT_URL,
 
-            {
+                {
 
-                method:
-                "POST",
+                    method:
+                        "POST",
 
+                    headers: {
 
-                headers: {
+                        "Content-Type":
+                            "text/plain;charset=utf-8"
 
-                    "Content-Type":
-                    "text/plain;charset=utf-8"
+                    },
 
-                },
+                    body:
+                        JSON.stringify(
+                            attendance
+                        )
 
+                }
 
-                body:
-                JSON.stringify(
-                    attendance
-                )
-
-            }
-
-        );
+            );
 
 
         const result =
-        await response.json();
+            await response.json();
 
 
         if (
@@ -1745,20 +1815,27 @@ async function submitAttendance() {
         ) {
 
 
-            alert(
+            localStorage.setItem(
 
-                "✅ Attendance Submitted Successfully!"
+                attendanceKey,
+
+                JSON.stringify(
+                    attendance
+                )
 
             );
 
 
+            alert(
+                "✅ Attendance Submitted Successfully!"
+            );
+
+
             window.location.href =
-            "dashboard.html";
+                "dashboard.html";
 
 
-        }
-
-        else {
+        } else {
 
 
             alert(
@@ -1766,9 +1843,11 @@ async function submitAttendance() {
                 "❌ " +
 
                 (
+
                     result.message ||
 
                     "Attendance submission failed."
+
                 )
 
             );
@@ -1776,12 +1855,11 @@ async function submitAttendance() {
         }
 
 
-    }
-
-    catch(error) {
+    } catch (error) {
 
 
         console.error(
+            "Submission Error:",
             error
         );
 
@@ -1803,8 +1881,7 @@ async function submitAttendance() {
 // START SYSTEM
 // ======================================================
 
-// IMPORTANT:
-// Settings must finish loading first.
-// Only then will GPS and camera start.
+// Settings are loaded first.
+// GPS and camera start only after settings load.
 
 loadSettings();
