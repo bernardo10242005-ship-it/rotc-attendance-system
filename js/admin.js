@@ -14,14 +14,6 @@ const APPS_SCRIPT_URL =
 
 
 // ======================================================
-// GOOGLE SHEET
-// ======================================================
-
-const GOOGLE_SHEET_URL =
-"https://docs.google.com/spreadsheets/d/1y0PmS9GcmH8WcPNxundYdl7BWgYa_gl_KCp-dUqNZzA/edit";
-
-
-// ======================================================
 // ADMIN LOGIN
 // ======================================================
 
@@ -34,9 +26,11 @@ function loginAdmin() {
     document.getElementById("password");
 
 
-    // Only run on admin login page
-
-    if (!usernameBox || !passwordBox) {
+    // If not on admin login page
+    if (
+        !usernameBox ||
+        !passwordBox
+    ) {
 
         return;
 
@@ -46,12 +40,13 @@ function loginAdmin() {
     const username =
     usernameBox.value.trim();
 
+
     const password =
     passwordBox.value.trim();
 
 
     // ==================================================
-    // ADMIN ACCOUNT
+    // ADMIN LOGIN CREDENTIALS
     // ==================================================
 
     if (
@@ -73,7 +68,9 @@ function loginAdmin() {
     else {
 
         const error =
-        document.getElementById("error");
+        document.getElementById(
+            "error"
+        );
 
 
         if (error) {
@@ -89,79 +86,33 @@ function loginAdmin() {
 
 
 // ======================================================
-// CHECK ADMIN LOGIN
-// ======================================================
-
-function checkAdminLogin() {
-
-    const loggedIn =
-    localStorage.getItem(
-        "adminLoggedIn"
-    );
-
-
-    if (
-        loggedIn !== "true"
-    ) {
-
-        window.location.href =
-        "admin.html";
-
-        return false;
-
-    }
-
-
-    return true;
-
-}
-
-
-// ======================================================
-// LOAD SETTINGS FROM GOOGLE SHEETS
+// LOAD ADMIN SETTINGS
 // ======================================================
 
 async function loadAdminSettings() {
 
-    console.log(
-        "Loading admin settings from Google Sheets..."
-    );
-
-
-    const statusElement =
-    document.getElementById(
-        "settingsStatus"
-    );
-
-
-    if (statusElement) {
-
-        statusElement.textContent =
-        "⏳ Loading settings...";
-
-    }
-
-
     try {
+
+        console.log(
+            "Loading admin settings..."
+        );
 
 
         const response =
         await fetch(
-
             APPS_SCRIPT_URL +
-            "?action=getSettings&t=" +
+            "?t=" +
             Date.now()
-
         );
 
 
-        if (!response.ok) {
+        if (
+            !response.ok
+        ) {
 
             throw new Error(
-
-                "HTTP Error " +
+                "HTTP Error: " +
                 response.status
-
             );
 
         }
@@ -172,7 +123,7 @@ async function loadAdminSettings() {
 
 
         console.log(
-            "Settings received:",
+            "Settings loaded:",
             settings
         );
 
@@ -190,29 +141,52 @@ async function loadAdminSettings() {
 
 
         // ==================================================
-        // DISPLAY SETTINGS
+        // DISPLAY SETTINGS IN ADMIN DASHBOARD
         // ==================================================
 
-
-        const attendanceStatus =
+        const status =
         document.getElementById(
             "attendanceStatus"
         );
-
-
-        if (attendanceStatus) {
-
-            attendanceStatus.value =
-            settings.status ||
-            "CLOSED";
-
-        }
 
 
         const latitude =
         document.getElementById(
             "latitude"
         );
+
+
+        const longitude =
+        document.getElementById(
+            "longitude"
+        );
+
+
+        const radius =
+        document.getElementById(
+            "radius"
+        );
+
+
+        const startTime =
+        document.getElementById(
+            "startTime"
+        );
+
+
+        const endTime =
+        document.getElementById(
+            "endTime"
+        );
+
+
+        if (status) {
+
+            status.value =
+            settings.status ||
+            "CLOSED";
+
+        }
 
 
         if (latitude) {
@@ -224,12 +198,6 @@ async function loadAdminSettings() {
         }
 
 
-        const longitude =
-        document.getElementById(
-            "longitude"
-        );
-
-
         if (longitude) {
 
             longitude.value =
@@ -237,12 +205,6 @@ async function loadAdminSettings() {
             "";
 
         }
-
-
-        const radius =
-        document.getElementById(
-            "radius"
-        );
 
 
         if (radius) {
@@ -254,12 +216,6 @@ async function loadAdminSettings() {
         }
 
 
-        const startTime =
-        document.getElementById(
-            "startTime"
-        );
-
-
         if (startTime) {
 
             startTime.value =
@@ -267,12 +223,6 @@ async function loadAdminSettings() {
             "07:00";
 
         }
-
-
-        const endTime =
-        document.getElementById(
-            "endTime"
-        );
 
 
         if (endTime) {
@@ -284,24 +234,8 @@ async function loadAdminSettings() {
         }
 
 
-        if (statusElement) {
-
-            statusElement.textContent =
-            "✅ Settings loaded successfully.";
-
-        }
-
-
-        // Save local backup
-
-        localStorage.setItem(
-
-            "attendanceSettings",
-
-            JSON.stringify(
-                settings
-            )
-
+        console.log(
+            "Admin settings displayed successfully."
         );
 
 
@@ -309,19 +243,10 @@ async function loadAdminSettings() {
 
     catch(error) {
 
-
         console.error(
-            "Settings loading error:",
+            "Settings Error:",
             error
         );
-
-
-        if (statusElement) {
-
-            statusElement.textContent =
-            "❌ Unable to load settings.";
-
-        }
 
 
         alert(
@@ -338,7 +263,7 @@ async function loadAdminSettings() {
 
 
 // ======================================================
-// GET CURRENT GPS LOCATION
+// GET CURRENT LOCATION
 // ======================================================
 
 function getCurrentLocation() {
@@ -349,7 +274,7 @@ function getCurrentLocation() {
     ) {
 
         alert(
-            "GPS is not supported by this browser."
+            "GPS is not supported by this device."
         );
 
         return;
@@ -366,7 +291,7 @@ function getCurrentLocation() {
     if (locationStatus) {
 
         locationStatus.innerHTML =
-        "📍 Getting your current location...";
+        "🟡 Detecting your current location...";
 
     }
 
@@ -384,31 +309,33 @@ function getCurrentLocation() {
             position.coords.longitude;
 
 
-            // Put coordinates into inputs
+            // ==================================================
+            // PUT GPS INTO INPUT BOXES
+            // ==================================================
 
-            const latitudeInput =
+            const latitudeBox =
             document.getElementById(
                 "latitude"
             );
 
 
-            const longitudeInput =
+            const longitudeBox =
             document.getElementById(
                 "longitude"
             );
 
 
-            if (latitudeInput) {
+            if (latitudeBox) {
 
-                latitudeInput.value =
+                latitudeBox.value =
                 latitude.toFixed(7);
 
             }
 
 
-            if (longitudeInput) {
+            if (longitudeBox) {
 
-                longitudeInput.value =
+                longitudeBox.value =
                 longitude.toFixed(7);
 
             }
@@ -418,7 +345,7 @@ function getCurrentLocation() {
 
                 locationStatus.innerHTML =
 
-                "✅ Current Location Captured<br>" +
+                "✅ Current location captured successfully.<br>" +
 
                 "Latitude: " +
                 latitude.toFixed(7) +
@@ -446,24 +373,16 @@ function getCurrentLocation() {
             if (locationStatus) {
 
                 locationStatus.innerHTML =
-                "❌ Unable to get location.";
+                "❌ Unable to get current location.";
 
             }
 
 
             alert(
 
-                "❌ Unable to get GPS location.\n\n" +
+                "Unable to get your current location.\n\n" +
 
-                "Please make sure:\n" +
-
-                "1. Location/GPS is ON.\n" +
-
-                "2. You allowed location permission.\n" +
-
-                "3. You are using HTTPS.\n" +
-
-                "4. Your browser has location permission."
+                "Please make sure Location/GPS is turned ON and allow location permission."
 
             );
 
@@ -476,7 +395,7 @@ function getCurrentLocation() {
             true,
 
             timeout:
-            20000,
+            15000,
 
             maximumAge:
             0
@@ -496,9 +415,8 @@ async function saveSettings() {
 
 
     // ==================================================
-    // GET VALUES
+    // GET INPUT VALUES
     // ==================================================
-
 
     const status =
     document.getElementById(
@@ -537,9 +455,8 @@ async function saveSettings() {
 
 
     // ==================================================
-    // VALIDATE
+    // VALIDATE LOCATION
     // ==================================================
-
 
     if (
         latitude === "" ||
@@ -555,30 +472,19 @@ async function saveSettings() {
     }
 
 
-    if (
-        isNaN(
-            parseFloat(latitude)
-        ) ||
+    // ==================================================
+    // VALIDATE RADIUS
+    // ==================================================
 
-        isNaN(
-            parseFloat(longitude)
-        )
-    ) {
-
-        alert(
-            "❌ Latitude and longitude must be valid numbers."
-        );
-
-        return;
-
-    }
+    const radiusNumber =
+    parseFloat(
+        radius
+    );
 
 
     if (
-        radius === "" ||
-        isNaN(
-            parseFloat(radius)
-        )
+        isNaN(radiusNumber) ||
+        radiusNumber <= 0
     ) {
 
         alert(
@@ -590,18 +496,9 @@ async function saveSettings() {
     }
 
 
-    if (
-        parseFloat(radius) <= 0
-    ) {
-
-        alert(
-            "❌ Radius must be greater than 0."
-        );
-
-        return;
-
-    }
-
+    // ==================================================
+    // VALIDATE TIME
+    // ==================================================
 
     if (
         !startTime ||
@@ -609,7 +506,7 @@ async function saveSettings() {
     ) {
 
         alert(
-            "❌ Please select the attendance start and end time."
+            "❌ Please enter the attendance start and end time."
         );
 
         return;
@@ -618,9 +515,8 @@ async function saveSettings() {
 
 
     // ==================================================
-    // CREATE SETTINGS
+    // CREATE SETTINGS OBJECT
     // ==================================================
-
 
     const settings = {
 
@@ -631,13 +527,14 @@ async function saveSettings() {
         status,
 
         latitude:
-        parseFloat(latitude),
+        latitude,
 
         longitude:
-        parseFloat(longitude),
+        longitude,
 
         radius:
-        parseFloat(radius),
+        radiusNumber
+        .toString(),
 
         startTime:
         startTime,
@@ -658,17 +555,16 @@ async function saveSettings() {
     // SHOW SAVING MESSAGE
     // ==================================================
 
-
-    const statusElement =
+    const locationStatus =
     document.getElementById(
-        "settingsStatus"
+        "locationStatus"
     );
 
 
-    if (statusElement) {
+    if (locationStatus) {
 
-        statusElement.textContent =
-        "⏳ Saving settings...";
+        locationStatus.innerHTML =
+        "⏳ Saving attendance settings...";
 
     }
 
@@ -677,9 +573,8 @@ async function saveSettings() {
 
 
         // ==================================================
-        // SEND TO GOOGLE APPS SCRIPT
+        // SEND SETTINGS TO GOOGLE APPS SCRIPT
         // ==================================================
-
 
         const response =
         await fetch(
@@ -691,12 +586,14 @@ async function saveSettings() {
                 method:
                 "POST",
 
+
                 headers: {
 
                     "Content-Type":
                     "text/plain;charset=utf-8"
 
                 },
+
 
                 body:
                 JSON.stringify(
@@ -708,17 +605,9 @@ async function saveSettings() {
         );
 
 
-        if (!response.ok) {
-
-            throw new Error(
-
-                "HTTP Error " +
-                response.status
-
-            );
-
-        }
-
+        // ==================================================
+        // READ RESPONSE
+        // ==================================================
 
         const result =
         await response.json();
@@ -730,90 +619,58 @@ async function saveSettings() {
         );
 
 
+        // ==================================================
+        // CHECK RESULT
+        // ==================================================
+
         if (
-            !result.success
+            result.success
         ) {
 
-            throw new Error(
 
-                result.message ||
+            // Save a local copy too
 
-                "Google Apps Script failed to save settings."
+            localStorage.setItem(
+
+                "attendanceSettings",
+
+                JSON.stringify(
+                    settings
+                )
+
+            );
+
+
+            if (locationStatus) {
+
+                locationStatus.innerHTML =
+                "✅ Attendance settings saved successfully.";
+
+            }
+
+
+            alert(
+
+                "✅ Attendance Settings Saved Successfully!\n\n" +
+
+                "The new settings are now stored in Google Sheets and will be used by student devices."
 
             );
 
         }
 
-
-        // ==================================================
-        // SAVE LOCAL BACKUP
-        // ==================================================
+        else {
 
 
-        localStorage.setItem(
+            throw new Error(
 
-            "attendanceSettings",
+                result.message ||
 
-            JSON.stringify({
+                "Google Apps Script could not save the settings."
 
-                status:
-                status,
-
-                latitude:
-                latitude,
-
-                longitude:
-                longitude,
-
-                radius:
-                radius,
-
-                startTime:
-                startTime,
-
-                endTime:
-                endTime
-
-            })
-
-        );
-
-
-        // ==================================================
-        // SUCCESS
-        // ==================================================
-
-
-        if (statusElement) {
-
-            statusElement.textContent =
-            "✅ Settings saved successfully.";
+            );
 
         }
-
-
-        alert(
-
-            "✅ Attendance Settings Saved!\n\n" +
-
-            "Status: " +
-            status +
-
-            "\nLocation: " +
-            latitude +
-            ", " +
-            longitude +
-
-            "\nRadius: " +
-            radius +
-            " meters" +
-
-            "\nTime: " +
-            startTime +
-            " - " +
-            endTime
-
-        );
 
 
     }
@@ -822,15 +679,15 @@ async function saveSettings() {
 
 
         console.error(
-            "Save settings error:",
+            "Save Settings Error:",
             error
         );
 
 
-        if (statusElement) {
+        if (locationStatus) {
 
-            statusElement.textContent =
-            "❌ Failed to save settings.";
+            locationStatus.innerHTML =
+            "❌ Failed to save attendance settings.";
 
         }
 
@@ -849,7 +706,7 @@ async function saveSettings() {
 
 
 // ======================================================
-// OPEN GOOGLE SHEET
+// OPEN GOOGLE ATTENDANCE SPREADSHEET
 // ======================================================
 
 function openSheet() {
@@ -857,7 +714,7 @@ function openSheet() {
 
     window.open(
 
-        GOOGLE_SHEET_URL,
+        "https://docs.google.com/spreadsheets/d/1y0PmS9GcmH8WcPNxundYdl7BWgYa_gl_KCp-dUqNZzA/edit",
 
         "_blank"
 
@@ -885,7 +742,7 @@ function logoutAdmin() {
 
 
 // ======================================================
-// ADMIN DASHBOARD STARTUP
+// LOAD SETTINGS WHEN ADMIN DASHBOARD OPENS
 // ======================================================
 
 document.addEventListener(
@@ -895,7 +752,7 @@ document.addEventListener(
     function() {
 
 
-        // Only run on Admin Dashboard
+        // Only run on admin dashboard
 
         if (
             document.getElementById(
@@ -904,18 +761,7 @@ document.addEventListener(
         ) {
 
 
-            // Check login
-
-            if (
-                !checkAdminLogin()
-            ) {
-
-                return;
-
-            }
-
-
-            // Load settings
+            // Load settings from Google Sheets
 
             loadAdminSettings();
 
