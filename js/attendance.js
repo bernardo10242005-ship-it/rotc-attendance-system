@@ -101,62 +101,76 @@ let signed = false;
 
 async function loadSettings() {
 
+    const gpsStatus =
+        document.getElementById("gpsStatus");
+
+    if (gpsStatus) {
+        gpsStatus.textContent =
+            "⏳ Connecting to attendance server...";
+    }
+
     try {
 
-        console.log(
-            "Loading attendance settings..."
-        );
-
-
-        // Show loading message
-
-        const gpsStatus =
-        document.getElementById(
-            "gpsStatus"
-        );
-
-        if (gpsStatus) {
-
-            gpsStatus.textContent =
-            "⏳ Loading attendance settings...";
-
-        }
-
-
-        // Request settings from Apps Script
+        console.log("STEP 1: Starting request");
 
         const response = await fetch(APPS_SCRIPT_URL, {
-    method: "GET",
-    redirect: "follow",
-    cache: "no-cache"
-});
+            method: "GET",
+            cache: "no-store",
+            redirect: "follow"
+        });
 
-
-        // Check HTTP response
+        console.log(
+            "STEP 2: Response received",
+            response.status,
+            response.type,
+            response.url
+        );
 
         if (!response.ok) {
 
             throw new Error(
-                "HTTP Error: " +
+                "HTTP ERROR " +
                 response.status
             );
 
         }
 
-
-        // Read JSON
-
-        const data =
-        await response.json();
-
+        const text =
+            await response.text();
 
         console.log(
-            "Settings received:",
-            data
+            "STEP 3: Raw response:",
+            text
         );
 
+        if (!text) {
 
-        // Check Apps Script success
+            throw new Error(
+                "Google Apps Script returned an empty response."
+            );
+
+        }
+
+        let data;
+
+        try {
+
+            data =
+                JSON.parse(text);
+
+        } catch (jsonError) {
+
+            throw new Error(
+                "Invalid JSON received from Apps Script: " +
+                text.substring(0, 200)
+            );
+
+        }
+
+        console.log(
+            "STEP 4: Parsed settings:",
+            data
+        );
 
         if (
             data.success === false
@@ -164,77 +178,116 @@ async function loadSettings() {
 
             throw new Error(
                 data.message ||
-                "Google Apps Script returned an error."
+                "Apps Script returned success=false."
             );
 
         }
 
-
-        // Save settings
-
-        settings =
-        data;
-
-
-        // Convert GPS values
-
-        TRAINING_LAT =
-        parseFloat(
-            settings.latitude
-        );
-
-
-        TRAINING_LNG =
-        parseFloat(
-            settings.longitude
-        );
-
-
-        // Convert radius
-
-        ALLOWED_RADIUS =
-        parseFloat(
-            settings.radius
-        ) || 200;
-
-
-        // Validate coordinates
-
         if (
-            isNaN(TRAINING_LAT) ||
-            isNaN(TRAINING_LNG)
+            !data.latitude ||
+            !data.longitude
         ) {
 
             throw new Error(
-                "Training ground coordinates are invalid."
+                "Settings response does not contain latitude or longitude."
             );
 
         }
 
+        settings = data;
+
+        TRAINING_LAT =
+            parseFloat(
+                data.latitude
+            );
+
+        TRAINING_LNG =
+            parseFloat(
+                data.longitude
+            );
+
+        ALLOWED_RADIUS =
+            parseFloat(
+                data.radius
+            ) || 200;
 
         console.log(
-            "Settings loaded successfully."
+            "STEP 5: Settings successfully loaded."
         );
-
 
         console.log(
             "Latitude:",
             TRAINING_LAT
         );
 
-
         console.log(
             "Longitude:",
             TRAINING_LNG
         );
-
 
         console.log(
             "Radius:",
             ALLOWED_RADIUS
         );
 
+        if (gpsStatus) {
 
+            gpsStatus.textContent =
+                "🟡 Detecting GPS...";
+
+        }
+
+        initializeAttendance();
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "========== SETTINGS ERROR =========="
+        );
+
+        console.error(
+            error
+        );
+
+        console.error(
+            "Message:",
+            error.message
+        );
+
+        console.error(
+            "Name:",
+            error.name
+        );
+
+        console.error(
+            "===================================="
+        );
+
+
+        if (gpsStatus) {
+
+            gpsStatus.textContent =
+                "🔴 SETTINGS ERROR: " +
+                error.message;
+
+        }
+
+
+        alert(
+
+            "ATTENDANCE SETTINGS ERROR\n\n" +
+
+            error.message +
+
+            "\n\nPlease send me a screenshot of this exact message."
+
+        );
+
+    }
+
+}
         // ==================================================
         // SETTINGS LOADED
         // START ATTENDANCE SYSTEM
