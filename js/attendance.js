@@ -125,12 +125,11 @@ async function loadSettings() {
 
         // Request settings from Apps Script
 
-        const response =
-        await fetch(
-            APPS_SCRIPT_URL +
-            "?t=" +
-            Date.now()
-        );
+        const response = await fetch(APPS_SCRIPT_URL, {
+    method: "GET",
+    redirect: "follow",
+    cache: "no-cache"
+});
 
 
         // Check HTTP response
