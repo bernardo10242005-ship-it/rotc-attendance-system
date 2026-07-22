@@ -116,329 +116,177 @@ if (student) {
 // ======================================================
 // LOAD ATTENDANCE SETTINGS
 // ======================================================
+function loadSettings() {
 
-async function loadSettings() {
+    console.log("Loading attendance settings...");
 
     const gpsStatus =
-    document.getElementById("gpsStatus");
+        document.getElementById("gpsStatus");
 
-
-    try {
-
-        console.log(
-            "================================"
-        );
-
-        console.log(
-            "LOADING ATTENDANCE SETTINGS"
-        );
-
-        console.log(
-            "URL:",
-            APPS_SCRIPT_URL
-        );
-
-
-        if (gpsStatus) {
-
-            gpsStatus.textContent =
+    if (gpsStatus) {
+        gpsStatus.textContent =
             "⏳ Loading attendance settings...";
+    }
 
-        }
+    // Create hidden JSONP script
+    const script =
+        document.createElement("script");
+
+    // Unique callback name
+    const callbackName =
+        "attendanceSettingsCallback_" +
+        Date.now();
+
+    // Create callback function
+    window[callbackName] =
+        function(data) {
+
+            console.log(
+                "Attendance settings received:",
+                data
+            );
+
+            // Remove script
+            script.remove();
+
+            // Remove callback
+            delete window[callbackName];
+
+            // Check response
+            if (
+                !data ||
+                data.success === false
+            ) {
+
+                console.error(
+                    "Settings error:",
+                    data
+                );
+
+                if (gpsStatus) {
+                    gpsStatus.textContent =
+                        "🔴 Unable to load attendance settings.";
+                }
+
+                alert(
+                    "❌ Unable to load attendance settings.\n\n" +
+                    "Please contact the administrator."
+                );
+
+                return;
+            }
+
+            // Save settings
+            settings = data;
+
+            // Training ground
+            TRAINING_LAT =
+                parseFloat(
+                    data.latitude
+                );
+
+            TRAINING_LNG =
+                parseFloat(
+                    data.longitude
+                );
+
+            // Radius
+            ALLOWED_RADIUS =
+                parseFloat(
+                    data.radius
+                ) || 200;
+
+            // Validate coordinates
+            if (
+                isNaN(TRAINING_LAT) ||
+                isNaN(TRAINING_LNG)
+            ) {
+
+                alert(
+                    "❌ Invalid training ground coordinates."
+                );
+
+                return;
+            }
+
+            console.log(
+                "Settings loaded successfully."
+            );
+
+            console.log(
+                "Latitude:",
+                TRAINING_LAT
+            );
+
+            console.log(
+                "Longitude:",
+                TRAINING_LNG
+            );
+
+            console.log(
+                "Radius:",
+                ALLOWED_RADIUS
+            );
+
+            // Continue system
+            initializeAttendance();
+
+        };
 
 
-        // ==================================================
-        // FETCH GOOGLE APPS SCRIPT
-        // ==================================================
+    // Error handler
+    script.onerror =
+        function() {
 
-        const response =
-        await fetch(
+            console.error(
+                "Failed to load Google Apps Script."
+            );
 
-            APPS_SCRIPT_URL +
-            "?action=settings&t=" +
-            Date.now(),
+            script.remove();
 
-            {
+            delete window[callbackName];
 
-                method:
-                "GET",
+            if (gpsStatus) {
 
-                cache:
-                "no-store",
-
-                redirect:
-                "follow"
+                gpsStatus.textContent =
+                    "🔴 Unable to connect to attendance server.";
 
             }
 
-        );
-
-
-        console.log(
-            "HTTP STATUS:",
-            response.status
-        );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                "HTTP Error " +
-                response.status
+            alert(
+                "❌ Unable to connect to the attendance server.\n\n" +
+                "Please check your internet connection."
             );
 
-        }
+        };
 
 
-        // ==================================================
-        // READ RESPONSE AS TEXT FIRST
-        // ==================================================
+    // Build URL
+    script.src =
 
-        const responseText =
-        await response.text();
+        APPS_SCRIPT_URL +
 
+        "?action=settings" +
 
-        console.log(
-            "RAW RESPONSE:",
-            responseText
-        );
+        "&callback=" +
 
+        callbackName +
 
-        if (
-            !responseText ||
-            responseText.trim() === ""
-        ) {
+        "&t=" +
 
-            throw new Error(
-                "Google Apps Script returned an empty response."
-            );
+        Date.now();
 
-        }
 
+    console.log(
+        "Connecting to:",
+        script.src
+    );
 
-        // ==================================================
-        // CONVERT RESPONSE TO JSON
-        // ==================================================
 
-        let data;
-
-        try {
-
-            data =
-            JSON.parse(
-                responseText
-            );
-
-        } catch (jsonError) {
-
-            console.error(
-                "JSON ERROR:",
-                jsonError
-            );
-
-            throw new Error(
-                "Invalid JSON returned by Google Apps Script."
-            );
-
-        }
-
-
-        console.log(
-            "SETTINGS DATA:",
-            data
-        );
-
-
-        // ==================================================
-        // CHECK SERVER ERROR
-        // ==================================================
-
-        if (
-            data.success === false
-        ) {
-
-            throw new Error(
-
-                data.message ||
-
-                "Google Apps Script returned an error."
-
-            );
-
-        }
-
-
-        // ==================================================
-        // CHECK REQUIRED SETTINGS
-        // ==================================================
-
-        if (
-            data.latitude === undefined ||
-            data.longitude === undefined
-        ) {
-
-            throw new Error(
-                "Latitude or longitude is missing from settings."
-            );
-
-        }
-
-
-        // ==================================================
-        // SAVE SETTINGS
-        // ==================================================
-
-        settings =
-        data;
-
-
-        TRAINING_LAT =
-        parseFloat(
-            data.latitude
-        );
-
-
-        TRAINING_LNG =
-        parseFloat(
-            data.longitude
-        );
-
-
-        ALLOWED_RADIUS =
-        parseFloat(
-            data.radius
-        );
-
-
-        // Default radius
-
-        if (
-            isNaN(ALLOWED_RADIUS) ||
-            ALLOWED_RADIUS <= 0
-        ) {
-
-            ALLOWED_RADIUS =
-            200;
-
-        }
-
-
-        // ==================================================
-        // VALIDATE LOCATION
-        // ==================================================
-
-        if (
-            isNaN(TRAINING_LAT) ||
-            isNaN(TRAINING_LNG)
-        ) {
-
-            throw new Error(
-                "Invalid training ground coordinates."
-            );
-
-        }
-
-
-        console.log(
-            "TRAINING LAT:",
-            TRAINING_LAT
-        );
-
-
-        console.log(
-            "TRAINING LNG:",
-            TRAINING_LNG
-        );
-
-
-        console.log(
-            "ALLOWED RADIUS:",
-            ALLOWED_RADIUS
-        );
-
-
-        console.log(
-            "ATTENDANCE STATUS:",
-            data.status
-        );
-
-
-        console.log(
-            "START TIME:",
-            data.startTime
-        );
-
-
-        console.log(
-            "END TIME:",
-            data.endTime
-        );
-
-
-        // ==================================================
-        // SETTINGS LOADED SUCCESSFULLY
-        // ==================================================
-
-        if (gpsStatus) {
-
-            gpsStatus.textContent =
-            "🟡 Attendance settings loaded. Detecting GPS...";
-
-        }
-
-
-        console.log(
-            "ATTENDANCE SETTINGS LOADED SUCCESSFULLY"
-        );
-
-
-        // ==================================================
-        // START EVERYTHING
-        // ==================================================
-
-        initializeAttendance();
-
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "================================"
-        );
-
-        console.error(
-            "SETTINGS LOAD FAILED"
-        );
-
-        console.error(
-            error
-        );
-
-        console.error(
-            "================================"
-        );
-
-
-        if (gpsStatus) {
-
-            gpsStatus.textContent =
-            "🔴 Unable to load attendance settings.";
-
-        }
-
-
-        alert(
-
-            "❌ Unable to load attendance settings.\n\n" +
-
-            "Error: " +
-
-            error.message
-
-        );
-
-    }
+    // Add script to page
+    document.body.appendChild(
+        script
+    );
 
 }
 
