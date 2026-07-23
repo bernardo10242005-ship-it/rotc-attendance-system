@@ -1,17 +1,25 @@
 function loginStudent() {
 
-    const id = document.getElementById("studentID").value.trim();
+    const id =
+        document
+            .getElementById("studentID")
+            .value
+            .trim();
 
-    const name = document
-        .getElementById("studentName")
-        .value
-        .trim()
-        .replace(/\s+/g, " ")
-        .toLowerCase();
+    const name =
+        document
+            .getElementById("studentName")
+            .value
+            .trim()
+            .replace(/\s+/g, " ")
+            .toLowerCase();
 
-    const errorBox = document.getElementById("error");
+    const errorBox =
+        document
+            .getElementById("error");
 
     errorBox.innerHTML = "";
+
 
     // ==================================================
     // BASIC VALIDATION
