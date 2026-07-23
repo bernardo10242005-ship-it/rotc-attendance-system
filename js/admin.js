@@ -26,7 +26,6 @@ function loginAdmin() {
     document.getElementById("password");
 
 
-    // If not on admin login page
     if (
         !usernameBox ||
         !passwordBox
@@ -44,10 +43,6 @@ function loginAdmin() {
     const password =
     passwordBox.value.trim();
 
-
-    // ==================================================
-    // ADMIN LOGIN CREDENTIALS
-    // ==================================================
 
     if (
         username === "IAN" &&
@@ -68,9 +63,7 @@ function loginAdmin() {
     else {
 
         const error =
-        document.getElementById(
-            "error"
-        );
+        document.getElementById("error");
 
 
         if (error) {
@@ -93,22 +86,22 @@ async function loadAdminSettings() {
 
     try {
 
-        console.log(
-            "Loading admin settings..."
-        );
-
-
         const response =
         await fetch(
+
             APPS_SCRIPT_URL +
             "?t=" +
-            Date.now()
+            Date.now(),
+
+            {
+                cache:
+                "no-store"
+            }
+
         );
 
 
-        if (
-            !response.ok
-        ) {
+        if (!response.ok) {
 
             throw new Error(
                 "HTTP Error: " +
@@ -140,13 +133,21 @@ async function loadAdminSettings() {
         }
 
 
-        // ==================================================
-        // DISPLAY SETTINGS IN ADMIN DASHBOARD
-        // ==================================================
-
         const status =
         document.getElementById(
             "attendanceStatus"
+        );
+
+
+        const trainingDay =
+        document.getElementById(
+            "trainingDay"
+        );
+
+
+        const trainingTopic =
+        document.getElementById(
+            "trainingTopic"
         );
 
 
@@ -185,6 +186,24 @@ async function loadAdminSettings() {
             status.value =
             settings.status ||
             "CLOSED";
+
+        }
+
+
+        if (trainingDay) {
+
+            trainingDay.value =
+            settings.trainingDay ||
+            "";
+
+        }
+
+
+        if (trainingTopic) {
+
+            trainingTopic.value =
+            settings.trainingTopic ||
+            "";
 
         }
 
@@ -233,12 +252,6 @@ async function loadAdminSettings() {
 
         }
 
-
-        console.log(
-            "Admin settings displayed successfully."
-        );
-
-
     }
 
     catch(error) {
@@ -267,7 +280,6 @@ async function loadAdminSettings() {
 // ======================================================
 
 function getCurrentLocation() {
-
 
     if (
         !navigator.geolocation
@@ -300,7 +312,6 @@ function getCurrentLocation() {
 
         function(position) {
 
-
             const latitude =
             position.coords.latitude;
 
@@ -309,60 +320,40 @@ function getCurrentLocation() {
             position.coords.longitude;
 
 
-            // ==================================================
-            // PUT GPS INTO INPUT BOXES
-            // ==================================================
+            const accuracy =
+            position.coords.accuracy;
 
-            const latitudeBox =
+
             document.getElementById(
                 "latitude"
-            );
+            ).value =
+            latitude.toFixed(7);
 
 
-            const longitudeBox =
             document.getElementById(
                 "longitude"
-            );
-
-
-            if (latitudeBox) {
-
-                latitudeBox.value =
-                latitude.toFixed(7);
-
-            }
-
-
-            if (longitudeBox) {
-
-                longitudeBox.value =
-                longitude.toFixed(7);
-
-            }
+            ).value =
+            longitude.toFixed(7);
 
 
             if (locationStatus) {
 
                 locationStatus.innerHTML =
 
-                "✅ Current location captured successfully.<br>" +
+                "✅ Location captured.<br>" +
 
-                "Latitude: " +
-                latitude.toFixed(7) +
+                "Accuracy: approximately " +
 
-                "<br>" +
+                accuracy.toFixed(1) +
 
-                "Longitude: " +
-                longitude.toFixed(7);
+                " meters.";
 
             }
-
 
         },
 
 
         function(error) {
-
 
             console.error(
                 "GPS Error:",
@@ -382,7 +373,7 @@ function getCurrentLocation() {
 
                 "Unable to get your current location.\n\n" +
 
-                "Please make sure Location/GPS is turned ON and allow location permission."
+                "Make sure Location/GPS is ON and allow location permission."
 
             );
 
@@ -395,7 +386,7 @@ function getCurrentLocation() {
             true,
 
             timeout:
-            15000,
+            30000,
 
             maximumAge:
             0
@@ -408,20 +399,27 @@ function getCurrentLocation() {
 
 
 // ======================================================
-// SAVE SETTINGS TO GOOGLE SHEETS
+// SAVE SETTINGS
 // ======================================================
 
 async function saveSettings() {
-
-
-    // ==================================================
-    // GET INPUT VALUES
-    // ==================================================
 
     const status =
     document.getElementById(
         "attendanceStatus"
     ).value;
+
+
+    const trainingDay =
+    document.getElementById(
+        "trainingDay"
+    ).value.trim();
+
+
+    const trainingTopic =
+    document.getElementById(
+        "trainingTopic"
+    ).value.trim();
 
 
     const latitude =
@@ -455,16 +453,13 @@ async function saveSettings() {
 
 
     // ==================================================
-    // VALIDATE LOCATION
+    // VALIDATION
     // ==================================================
 
-    if (
-        latitude === "" ||
-        longitude === ""
-    ) {
+    if (!trainingDay) {
 
         alert(
-            "❌ Please enter or capture the training ground location."
+            "❌ Please enter the Training Day."
         );
 
         return;
@@ -472,9 +467,30 @@ async function saveSettings() {
     }
 
 
-    // ==================================================
-    // VALIDATE RADIUS
-    // ==================================================
+    if (!trainingTopic) {
+
+        alert(
+            "❌ Please enter the Training Topic or Subject."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        latitude === "" ||
+        longitude === ""
+    ) {
+
+        alert(
+            "❌ Please enter or capture the training location."
+        );
+
+        return;
+
+    }
+
 
     const radiusNumber =
     parseFloat(
@@ -488,17 +504,13 @@ async function saveSettings() {
     ) {
 
         alert(
-            "❌ Please enter a valid radius in meters."
+            "❌ Please enter a valid radius."
         );
 
         return;
 
     }
 
-
-    // ==================================================
-    // VALIDATE TIME
-    // ==================================================
 
     if (
         !startTime ||
@@ -515,7 +527,7 @@ async function saveSettings() {
 
 
     // ==================================================
-    // CREATE SETTINGS OBJECT
+    // CREATE SETTINGS
     // ==================================================
 
     const settings = {
@@ -526,6 +538,12 @@ async function saveSettings() {
         status:
         status,
 
+        trainingDay:
+        trainingDay,
+
+        trainingTopic:
+        trainingTopic,
+
         latitude:
         latitude,
 
@@ -533,8 +551,7 @@ async function saveSettings() {
         longitude,
 
         radius:
-        radiusNumber
-        .toString(),
+        radiusNumber.toString(),
 
         startTime:
         startTime,
@@ -545,16 +562,6 @@ async function saveSettings() {
     };
 
 
-    console.log(
-        "Saving settings:",
-        settings
-    );
-
-
-    // ==================================================
-    // SHOW SAVING MESSAGE
-    // ==================================================
-
     const locationStatus =
     document.getElementById(
         "locationStatus"
@@ -564,17 +571,12 @@ async function saveSettings() {
     if (locationStatus) {
 
         locationStatus.innerHTML =
-        "⏳ Saving attendance settings...";
+        "⏳ Saving settings...";
 
     }
 
 
     try {
-
-
-        // ==================================================
-        // SEND SETTINGS TO GOOGLE APPS SCRIPT
-        // ==================================================
 
         const response =
         await fetch(
@@ -586,14 +588,12 @@ async function saveSettings() {
                 method:
                 "POST",
 
-
                 headers: {
 
                     "Content-Type":
                     "text/plain;charset=utf-8"
 
                 },
-
 
                 body:
                 JSON.stringify(
@@ -605,10 +605,6 @@ async function saveSettings() {
         );
 
 
-        // ==================================================
-        // READ RESPONSE
-        // ==================================================
-
         const result =
         await response.json();
 
@@ -619,16 +615,9 @@ async function saveSettings() {
         );
 
 
-        // ==================================================
-        // CHECK RESULT
-        // ==================================================
-
         if (
             result.success
         ) {
-
-
-            // Save a local copy too
 
             localStorage.setItem(
 
@@ -644,16 +633,22 @@ async function saveSettings() {
             if (locationStatus) {
 
                 locationStatus.innerHTML =
-                "✅ Attendance settings saved successfully.";
+                "✅ Settings saved successfully.";
 
             }
 
 
             alert(
 
-                "✅ Attendance Settings Saved Successfully!\n\n" +
+                "✅ Attendance settings saved successfully!\n\n" +
 
-                "The new settings are now stored in Google Sheets and will be used by student devices."
+                "Training Day: " +
+
+                trainingDay +
+
+                "\nTopic: " +
+
+                trainingTopic
 
             );
 
@@ -661,25 +656,22 @@ async function saveSettings() {
 
         else {
 
-
             throw new Error(
 
                 result.message ||
 
-                "Google Apps Script could not save the settings."
+                "Unable to save settings."
 
             );
 
         }
 
-
     }
 
     catch(error) {
 
-
         console.error(
-            "Save Settings Error:",
+            "Save Error:",
             error
         );
 
@@ -687,14 +679,14 @@ async function saveSettings() {
         if (locationStatus) {
 
             locationStatus.innerHTML =
-            "❌ Failed to save attendance settings.";
+            "❌ Failed to save settings.";
 
         }
 
 
         alert(
 
-            "❌ Failed to save attendance settings.\n\n" +
+            "❌ Failed to save settings.\n\n" +
 
             error.message
 
@@ -706,11 +698,10 @@ async function saveSettings() {
 
 
 // ======================================================
-// OPEN GOOGLE ATTENDANCE SPREADSHEET
+// OPEN GOOGLE SPREADSHEET
 // ======================================================
 
 function openSheet() {
-
 
     window.open(
 
@@ -724,11 +715,10 @@ function openSheet() {
 
 
 // ======================================================
-// LOGOUT ADMIN
+// LOGOUT
 // ======================================================
 
 function logoutAdmin() {
-
 
     localStorage.removeItem(
         "adminLoggedIn"
@@ -742,7 +732,7 @@ function logoutAdmin() {
 
 
 // ======================================================
-// LOAD SETTINGS WHEN ADMIN DASHBOARD OPENS
+// PAGE LOAD
 // ======================================================
 
 document.addEventListener(
@@ -751,17 +741,11 @@ document.addEventListener(
 
     function() {
 
-
-        // Only run on admin dashboard
-
         if (
             document.getElementById(
                 "attendanceStatus"
             )
         ) {
-
-
-            // Load settings from Google Sheets
 
             loadAdminSettings();
 
