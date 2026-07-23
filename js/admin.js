@@ -251,7 +251,18 @@ async function loadAdminSettings() {
             "12:00";
 
         }
+const topic =
+document.getElementById(
+    "topic"
+);
 
+if (topic) {
+
+    topic.value =
+    settings.topic ||
+    "";
+
+}
     }
 
     catch(error) {
@@ -563,6 +574,10 @@ document.getElementById(
 
         endTime:
         endTime
+
+        topic:
+    topic
+
 
     };
 
