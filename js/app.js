@@ -9,56 +9,143 @@ function loginStudent() {
         .replace(/\s+/g, " ")
         .toLowerCase();
 
-    document.getElementById("error").innerHTML = "";
+    const errorBox = document.getElementById("error");
 
-    if (id.length !== 10) {
-        document.getElementById("error").innerHTML =
-            "Student Number must contain 10 digits.";
+    errorBox.innerHTML = "";
+
+    // ==================================================
+    // BASIC VALIDATION
+    // ==================================================
+
+    if (!/^\d{10}$/.test(id)) {
+
+        errorBox.innerHTML =
+            "Student Number must contain exactly 10 digits.";
+
         return;
+
     }
 
-    if (!id.startsWith("240104")) {
-        document.getElementById("error").innerHTML =
-            "Invalid Student Number.";
-        return;
-    }
 
-    fetch("data/students.json")
-        .then(response => response.json())
-        .then(data => {
+    // ==================================================
+    // GOOGLE APPS SCRIPT WEB APP
+    // ==================================================
 
-            const student = data.find(s =>
-                s.id === id &&
-                s.name
-                    .trim()
-                    .replace(/\s+/g, " ")
-                    .toLowerCase() === name
+    const API_URL =
+        "https://script.google.com/macros/s/AKfycbzmqVoMihTcRZkRLhwgmCWK9zSv1bgP6W2YL0aEUio2bX340vPCdpVQ6uJD3lGNq3J_4A/exec";
+
+
+    // ==================================================
+    // LOOK UP STUDENT FROM GOOGLE MASTERLIST
+    // ==================================================
+
+    errorBox.innerHTML =
+        "Checking student information...";
+
+
+    fetch(
+        API_URL +
+        "?action=getStudent&studentNumber=" +
+        encodeURIComponent(id)
+    )
+
+    .then(response => {
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Server returned an error."
             );
 
-            if (student) {
+        }
 
-                localStorage.setItem(
-                    "student",
-                    JSON.stringify(student)
-                );
+        return response.json();
 
-                window.location.href = "dashboard.html";
+    })
 
-            } else {
+    .then(student => {
 
-                document.getElementById("error").innerHTML =
-                    "Student Number or Name is incorrect.";
+        console.log(
+            "MASTERLIST RESPONSE:",
+            student
+        );
 
-            }
 
-        })
-        .catch(error => {
+        // ==================================================
+        // STUDENT NOT FOUND
+        // ==================================================
 
-            console.error(error);
+        if (!student.success) {
 
-            document.getElementById("error").innerHTML =
-                "Unable to load student database.";
+            errorBox.innerHTML =
+                student.message ||
+                "Student number not found in MASTERLIST.";
 
-        });
+            return;
+
+        }
+
+
+        // ==================================================
+        // CHECK NAME
+        // ==================================================
+
+        const masterlistName =
+            String(
+                student.name || ""
+            )
+            .trim()
+            .replace(/\s+/g, " ")
+            .toLowerCase();
+
+
+        if (
+            masterlistName !==
+            name
+        ) {
+
+            errorBox.innerHTML =
+                "Student Number or Name is incorrect.";
+
+            return;
+
+        }
+
+
+        // ==================================================
+        // SAVE STUDENT INFORMATION
+        // ==================================================
+
+        localStorage.setItem(
+
+            "student",
+
+            JSON.stringify(
+                student
+            )
+
+        );
+
+
+        // ==================================================
+        // LOGIN SUCCESS
+        // ==================================================
+
+        window.location.href =
+            "dashboard.html";
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "MASTERLIST LOGIN ERROR:",
+            error
+        );
+
+        errorBox.innerHTML =
+            "Unable to connect to the student database. Please try again.";
+
+    });
 
 }
