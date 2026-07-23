@@ -1,22 +1,43 @@
+// ======================================================
+// ROTC ATTENDANCE MANAGEMENT SYSTEM
+// STUDENT LOGIN
+// GOOGLE APPS SCRIPT MASTERLIST VERSION
+// ======================================================
+
 function loginStudent() {
 
+    // ==================================================
+    // GET INPUTS
+    // ==================================================
+
+    const idInput =
+        document.getElementById("studentID");
+
+    const nameInput =
+        document.getElementById("studentName");
+
+    const errorBox =
+        document.getElementById("error");
+
+
+    // ==================================================
+    // GET VALUES
+    // ==================================================
+
     const id =
-        document
-            .getElementById("studentID")
-            .value
+        idInput.value
             .trim();
 
     const name =
-        document
-            .getElementById("studentName")
-            .value
+        nameInput.value
             .trim()
             .replace(/\s+/g, " ")
             .toLowerCase();
 
-    const errorBox =
-        document
-            .getElementById("error");
+
+    // ==================================================
+    // CLEAR ERROR
+    // ==================================================
 
     errorBox.innerHTML = "";
 
@@ -36,7 +57,7 @@ function loginStudent() {
 
 
     // ==================================================
-    // GOOGLE APPS SCRIPT WEB APP
+    // GOOGLE APPS SCRIPT WEB APP URL
     // ==================================================
 
     const API_URL =
@@ -44,12 +65,16 @@ function loginStudent() {
 
 
     // ==================================================
-    // LOOK UP STUDENT FROM GOOGLE MASTERLIST
+    // SHOW LOADING MESSAGE
     // ==================================================
 
     errorBox.innerHTML =
         "Checking student information...";
 
+
+    // ==================================================
+    // REQUEST STUDENT FROM GOOGLE MASTERLIST
+    // ==================================================
 
     fetch(
         API_URL +
@@ -71,10 +96,15 @@ function loginStudent() {
 
     })
 
+
+    // ==================================================
+    // PROCESS GOOGLE APPS SCRIPT RESPONSE
+    // ==================================================
+
     .then(student => {
 
         console.log(
-            "MASTERLIST RESPONSE:",
+            "GOOGLE MASTERLIST RESPONSE:",
             student
         );
 
@@ -95,12 +125,14 @@ function loginStudent() {
 
 
         // ==================================================
-        // CHECK NAME
+        // CHECK STUDENT NAME
         // ==================================================
 
         const masterlistName =
+
             String(
-                student.name || ""
+                student.name ||
+                ""
             )
             .trim()
             .replace(/\s+/g, " ")
@@ -121,7 +153,79 @@ function loginStudent() {
 
 
         // ==================================================
-        // SAVE STUDENT INFORMATION
+        // CREATE STANDARD STUDENT OBJECT
+        //
+        // This makes sure your dashboard uses the
+        // correct property names.
+        // ==================================================
+
+        const studentData = {
+
+            // Student information
+
+            studentNumber:
+                student.studentNumber ||
+                id,
+
+            name:
+                student.name ||
+                "",
+
+            section:
+                student.section ||
+                "",
+
+            subjectCode:
+                student.subjectCode ||
+                "",
+
+            email:
+                student.email ||
+                "",
+
+            instructor:
+                student.instructor ||
+                "",
+
+            masterlistDate:
+                student.masterlistDate ||
+                "",
+
+
+            // ROTC information
+
+            course:
+                student.course ||
+                "",
+
+            year:
+                student.year ||
+                "",
+
+            flight:
+                student.flight ||
+                "",
+
+            studentType:
+                student.studentType ||
+                "REGULAR",
+
+
+            // Merits and demerits
+
+            merits:
+                student.merits ||
+                "0",
+
+            demerits:
+                student.demerits ||
+                "0"
+
+        };
+
+
+        // ==================================================
+        // SAVE STUDENT DATA
         // ==================================================
 
         localStorage.setItem(
@@ -129,7 +233,7 @@ function loginStudent() {
             "student",
 
             JSON.stringify(
-                student
+                studentData
             )
 
         );
@@ -139,10 +243,25 @@ function loginStudent() {
         // LOGIN SUCCESS
         // ==================================================
 
+        console.log(
+            "LOGIN SUCCESS:",
+            studentData
+        );
+
+
+        // ==================================================
+        // GO TO DASHBOARD
+        // ==================================================
+
         window.location.href =
             "dashboard.html";
 
     })
+
+
+    // ==================================================
+    // HANDLE ERROR
+    // ==================================================
 
     .catch(error => {
 
@@ -150,6 +269,7 @@ function loginStudent() {
             "MASTERLIST LOGIN ERROR:",
             error
         );
+
 
         errorBox.innerHTML =
             "Unable to connect to the student database. Please try again.";
