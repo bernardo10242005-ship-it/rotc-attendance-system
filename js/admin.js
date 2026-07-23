@@ -2,6 +2,7 @@
 // FULL BRIGHT COLLEGE
 // ROTC ATTENDANCE MANAGEMENT SYSTEM
 // ADMIN.JS
+// COMPLETE VERSION
 // ======================================================
 
 
@@ -20,10 +21,14 @@ const APPS_SCRIPT_URL =
 function loginAdmin() {
 
     const usernameBox =
-    document.getElementById("username");
+    document.getElementById(
+        "username"
+    );
 
     const passwordBox =
-    document.getElementById("password");
+    document.getElementById(
+        "password"
+    );
 
 
     if (
@@ -63,7 +68,9 @@ function loginAdmin() {
     else {
 
         const error =
-        document.getElementById("error");
+        document.getElementById(
+            "error"
+        );
 
 
         if (error) {
@@ -94,8 +101,13 @@ async function loadAdminSettings() {
             Date.now(),
 
             {
+
+                method:
+                "GET",
+
                 cache:
                 "no-store"
+
             }
 
         );
@@ -126,8 +138,11 @@ async function loadAdminSettings() {
         ) {
 
             throw new Error(
+
                 settings.message ||
+
                 "Unable to load settings."
+
             );
 
         }
@@ -251,18 +266,7 @@ async function loadAdminSettings() {
             "12:00";
 
         }
-const topic =
-document.getElementById(
-    "topic"
-);
 
-if (topic) {
-
-    topic.value =
-    settings.topic ||
-    "";
-
-}
     }
 
     catch(error) {
@@ -314,7 +318,7 @@ function getCurrentLocation() {
     if (locationStatus) {
 
         locationStatus.innerHTML =
-        "🟡 Detecting your current location...";
+        "🟡 Detecting your most accurate location...";
 
     }
 
@@ -335,16 +339,32 @@ function getCurrentLocation() {
             position.coords.accuracy;
 
 
+            const latitudeBox =
             document.getElementById(
                 "latitude"
-            ).value =
-            latitude.toFixed(7);
+            );
 
 
+            const longitudeBox =
             document.getElementById(
                 "longitude"
-            ).value =
-            longitude.toFixed(7);
+            );
+
+
+            if (latitudeBox) {
+
+                latitudeBox.value =
+                latitude.toFixed(7);
+
+            }
+
+
+            if (longitudeBox) {
+
+                longitudeBox.value =
+                longitude.toFixed(7);
+
+            }
 
 
             if (locationStatus) {
@@ -353,7 +373,7 @@ function getCurrentLocation() {
 
                 "✅ Location captured.<br>" +
 
-                "Accuracy: approximately " +
+                "GPS accuracy: approximately " +
 
                 accuracy.toFixed(1) +
 
@@ -462,11 +482,6 @@ async function saveSettings() {
         "endTime"
     ).value;
 
-    const topic =
-document.getElementById(
-    "topic"
-).value.trim();
-
 
     // ==================================================
     // VALIDATION
@@ -574,10 +589,6 @@ document.getElementById(
 
         endTime:
         endTime
-
-        topic:
-    topic
-
 
     };
 
@@ -718,7 +729,7 @@ document.getElementById(
 
 
 // ======================================================
-// OPEN GOOGLE SPREADSHEET
+// OPEN ATTENDANCE SPREADSHEET
 // ======================================================
 
 function openSheet() {
