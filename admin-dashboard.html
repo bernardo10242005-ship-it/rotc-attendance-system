@@ -30,7 +30,9 @@ href="css/style.css"
 <h2>Attendance Settings</h2>
 
 
-<label>Attendance Status</label>
+<label for="attendanceStatus">
+Attendance Status
+</label>
 
 <select id="attendanceStatus">
 
@@ -48,7 +50,9 @@ CLOSED
 <br><br>
 
 
-<label>Training Day</label>
+<label for="trainingDay">
+Training Day
+</label>
 
 <input
 type="text"
@@ -60,7 +64,9 @@ placeholder="Example: Training Day 1"
 <br><br>
 
 
-<label>Training Topic / Subject</label>
+<label for="trainingTopic">
+Training Topic / Subject
+</label>
 
 <input
 type="text"
@@ -72,22 +78,28 @@ placeholder="Example: Basic Military Discipline and Formation"
 <br><br>
 
 
-<label>Training Ground Latitude</label>
+<label for="latitude">
+Training Ground Latitude
+</label>
 
 <input
 type="text"
 id="latitude"
+placeholder="Example: 14.1234567"
 >
 
 
 <br><br>
 
 
-<label>Training Ground Longitude</label>
+<label for="longitude">
+Training Ground Longitude
+</label>
 
 <input
 type="text"
 id="longitude"
+placeholder="Example: 120.1234567"
 >
 
 
@@ -96,6 +108,7 @@ id="longitude"
 
 <button
 class="btn"
+type="button"
 onclick="getCurrentLocation()"
 >
 
@@ -110,34 +123,43 @@ onclick="getCurrentLocation()"
 <br>
 
 
-<label>Allowed Radius (Meters)</label>
+<label for="radius">
+Allowed Radius (Meters)
+</label>
 
 <input
 type="number"
 id="radius"
 value="200"
+min="1"
 >
 
 
 <br><br>
 
 
-<label>Attendance Start Time</label>
+<label for="startTime">
+Attendance Start Time
+</label>
 
 <input
 type="time"
 id="startTime"
+value="07:00"
 >
 
 
 <br><br>
 
 
-<label>Attendance End Time</label>
+<label for="endTime">
+Attendance End Time
+</label>
 
 <input
 type="time"
 id="endTime"
+value="12:00"
 >
 
 
@@ -146,6 +168,7 @@ id="endTime"
 
 <button
 class="btn"
+type="button"
 onclick="saveSettings()"
 >
 
@@ -162,6 +185,7 @@ SAVE SETTINGS
 
 <button
 class="btn"
+type="button"
 onclick="openSheet()"
 >
 
@@ -175,6 +199,7 @@ OPEN GOOGLE SPREADSHEET
 
 <button
 class="btn logout-btn"
+type="button"
 onclick="logoutAdmin()"
 >
 
