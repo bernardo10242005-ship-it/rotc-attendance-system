@@ -451,6 +451,11 @@ async function saveSettings() {
         "endTime"
     ).value;
 
+    const topic =
+document.getElementById(
+    "topic"
+).value.trim();
+
 
     // ==================================================
     // VALIDATION
