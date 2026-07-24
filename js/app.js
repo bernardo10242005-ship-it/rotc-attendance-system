@@ -2,41 +2,124 @@
 // ROTC ATTENDANCE MANAGEMENT SYSTEM
 // STUDENT LOGIN
 // GOOGLE APPS SCRIPT MASTERLIST VERSION
+// FLEXIBLE NAME MATCHING VERSION
+// ======================================================
+
+
+// ======================================================
+// NORMALIZE NAME
+//
+// This function makes different ways of typing the same
+// name easier to compare.
+//
+// Example:
+//
+// "BERNARDO, IAN CHRISTOPHER G."
+//
+// becomes:
+//
+// "bernardo ian christopher g"
+//
+// It removes:
+// - Capitalization differences
+// - Commas
+// - Periods
+// - Extra spaces
+// ======================================================
+
+function normalizeName(name) {
+
+    return String(name || "")
+
+        // Convert to lowercase
+        .toLowerCase()
+
+        // Remove commas
+        .replace(/,/g, "")
+
+        // Remove periods
+        .replace(/\./g, "")
+
+        // Replace multiple spaces with one space
+        .replace(/\s+/g, " ")
+
+        // Remove spaces at beginning/end
+        .trim();
+
+}
+
+
+// ======================================================
+// STUDENT LOGIN
 // ======================================================
 
 function loginStudent() {
 
+
     // ==================================================
-    // GET INPUTS
+    // GET INPUT ELEMENTS
     // ==================================================
 
     const idInput =
-        document.getElementById("studentID");
+        document.getElementById(
+            "studentID"
+        );
+
 
     const nameInput =
-        document.getElementById("studentName");
+        document.getElementById(
+            "studentName"
+        );
+
 
     const errorBox =
-        document.getElementById("error");
+        document.getElementById(
+            "error"
+        );
 
 
     // ==================================================
-    // GET VALUES
+    // CHECK INPUT ELEMENTS
+    // ==================================================
+
+    if (
+        !idInput ||
+        !nameInput ||
+        !errorBox
+    ) {
+
+        console.error(
+            "Student login input elements were not found."
+        );
+
+        return;
+
+    }
+
+
+    // ==================================================
+    // GET STUDENT NUMBER
     // ==================================================
 
     const id =
         idInput.value
             .trim();
 
+
+    // ==================================================
+    // GET STUDENT NAME
+    //
+    // The name is normalized before checking.
+    // ==================================================
+
     const name =
-        nameInput.value
-            .trim()
-            .replace(/\s+/g, " ")
-            .toLowerCase();
+        normalizeName(
+            nameInput.value
+        );
 
 
     // ==================================================
-    // CLEAR ERROR
+    // CLEAR PREVIOUS MESSAGE
     // ==================================================
 
     errorBox.innerHTML = "";
@@ -46,10 +129,26 @@ function loginStudent() {
     // BASIC VALIDATION
     // ==================================================
 
-    if (!/^\d{10}$/.test(id)) {
+    if (
+        !/^\d{10}$/.test(id)
+    ) {
 
         errorBox.innerHTML =
             "Student Number must contain exactly 10 digits.";
+
+        return;
+
+    }
+
+
+    // ==================================================
+    // CHECK EMPTY NAME
+    // ==================================================
+
+    if (!name) {
+
+        errorBox.innerHTML =
+            "Please enter your full name.";
 
         return;
 
@@ -77,203 +176,339 @@ function loginStudent() {
     // ==================================================
 
     fetch(
+
         API_URL +
+
         "?action=getStudent&studentNumber=" +
-        encodeURIComponent(id)
+
+        encodeURIComponent(
+            id
+        )
+
     )
 
-    .then(response => {
 
-        if (!response.ok) {
+    // ==================================================
+    // CHECK SERVER RESPONSE
+    // ==================================================
 
-            throw new Error(
-                "Server returned an error."
-            );
+    .then(
+
+        response => {
+
+            if (
+                !response.ok
+            ) {
+
+                throw new Error(
+                    "Server returned an error."
+                );
+
+            }
+
+
+            return response.json();
 
         }
 
-        return response.json();
-
-    })
+    )
 
 
     // ==================================================
     // PROCESS GOOGLE APPS SCRIPT RESPONSE
     // ==================================================
 
-    .then(student => {
+    .then(
 
-        console.log(
-            "GOOGLE MASTERLIST RESPONSE:",
-            student
-        );
+        student => {
 
 
-        // ==================================================
-        // STUDENT NOT FOUND
-        // ==================================================
+            console.log(
 
-        if (!student.success) {
+                "GOOGLE MASTERLIST RESPONSE:",
 
-            errorBox.innerHTML =
-                student.message ||
-                "Student number not found in MASTERLIST.";
+                student
 
-            return;
-
-        }
+            );
 
 
-        // ==================================================
-        // CHECK STUDENT NAME
-        // ==================================================
+            // ==================================================
+            // STUDENT NOT FOUND
+            // ==================================================
 
-        const masterlistName =
+            if (
+                !student.success
+            ) {
 
-            String(
-                student.name ||
-                ""
-            )
-            .trim()
-            .replace(/\s+/g, " ")
-            .toLowerCase();
+                errorBox.innerHTML =
 
+                    student.message ||
 
-        if (
-            masterlistName !==
-            name
-        ) {
+                    "Student number not found in MASTERLIST.";
 
-            errorBox.innerHTML =
-                "Student Number or Name is incorrect.";
+                return;
 
-            return;
-
-        }
+            }
 
 
-        // ==================================================
-        // CREATE STANDARD STUDENT OBJECT
-        //
-        // This makes sure your dashboard uses the
-        // correct property names.
-        // ==================================================
+            // ==================================================
+            // MASTERLIST NAME
+            // ==================================================
 
-        const studentData = {
+            const masterlistName =
 
-            // Student information
+                normalizeName(
 
-            studentNumber:
-                student.studentNumber ||
-                id,
+                    student.name
 
-            name:
-                student.name ||
-                "",
-
-            section:
-                student.section ||
-                "",
-
-            subjectCode:
-                student.subjectCode ||
-                "",
-
-            email:
-                student.email ||
-                "",
-
-            instructor:
-                student.instructor ||
-                "",
-
-            masterlistDate:
-                student.masterlistDate ||
-                "",
+                );
 
 
-            // ROTC information
+            // ==================================================
+            // FLEXIBLE NAME MATCHING
+            //
+            // The following are treated as equivalent:
+            //
+            // BERNARDO, IAN CHRISTOPHER G.
+            // bernardo, ian christopher g.
+            // Bernardo Ian Christopher G
+            // BERNARDO IAN CHRISTOPHER G.
+            //
+            // Because normalizeName() removes:
+            //
+            // - Capitalization differences
+            // - Commas
+            // - Periods
+            // - Extra spaces
+            // ==================================================
 
-            course:
-                student.course ||
-                "",
+            if (
 
-            year:
-                student.year ||
-                "",
+                masterlistName !== name
 
-            flight:
-                student.flight ||
-                "",
-
-            studentType:
-                student.studentType ||
-                "REGULAR",
-
-
-            // Merits and demerits
-
-            merits:
-                student.merits ||
-                "0",
-
-            demerits:
-                student.demerits ||
-                "0"
-
-        };
+            ) {
 
 
-        // ==================================================
-        // SAVE STUDENT DATA
-        // ==================================================
+                console.log(
 
-        localStorage.setItem(
+                    "NAME MISMATCH"
 
-            "student",
+                );
 
-            JSON.stringify(
+
+                console.log(
+
+                    "Masterlist Name:",
+
+                    masterlistName
+
+                );
+
+
+                console.log(
+
+                    "Entered Name:",
+
+                    name
+
+                );
+
+
+                errorBox.innerHTML =
+
+                    "Student Number or Name is incorrect.";
+
+                return;
+
+            }
+
+
+            // ==================================================
+            // CREATE STANDARD STUDENT OBJECT
+            //
+            // This makes sure the dashboard receives the
+            // correct property names.
+            // ==================================================
+
+            const studentData = {
+
+
+                // ==================================================
+                // STUDENT INFORMATION
+                // ==================================================
+
+                studentNumber:
+
+                    student.studentNumber ||
+
+                    id,
+
+
+                name:
+
+                    student.name ||
+
+                    "",
+
+
+                section:
+
+                    student.section ||
+
+                    "",
+
+
+                subjectCode:
+
+                    student.subjectCode ||
+
+                    "",
+
+
+                email:
+
+                    student.email ||
+
+                    "",
+
+
+                instructor:
+
+                    student.instructor ||
+
+                    "",
+
+
+                masterlistDate:
+
+                    student.masterlistDate ||
+
+                    "",
+
+
+
+                // ==================================================
+                // ROTC INFORMATION
+                // ==================================================
+
+                course:
+
+                    student.course ||
+
+                    "",
+
+
+                year:
+
+                    student.year ||
+
+                    "",
+
+
+                flight:
+
+                    student.flight ||
+
+                    "",
+
+
+                studentType:
+
+                    student.studentType ||
+
+                    "REGULAR",
+
+
+
+                // ==================================================
+                // MERITS AND DEMERITS
+                // ==================================================
+
+                merits:
+
+                    student.merits ||
+
+                    "0",
+
+
+                demerits:
+
+                    student.demerits ||
+
+                    "0"
+
+            };
+
+
+            // ==================================================
+            // SAVE STUDENT DATA
+            // ==================================================
+
+            localStorage.setItem(
+
+                "student",
+
+                JSON.stringify(
+
+                    studentData
+
+                )
+
+            );
+
+
+            // ==================================================
+            // LOGIN SUCCESS
+            // ==================================================
+
+            console.log(
+
+                "LOGIN SUCCESS:",
+
                 studentData
-            )
 
-        );
-
-
-        // ==================================================
-        // LOGIN SUCCESS
-        // ==================================================
-
-        console.log(
-            "LOGIN SUCCESS:",
-            studentData
-        );
+            );
 
 
-        // ==================================================
-        // GO TO DASHBOARD
-        // ==================================================
+            // ==================================================
+            // GO TO STUDENT DASHBOARD
+            // ==================================================
 
-        window.location.href =
-            "dashboard.html";
+            window.location.href =
 
-    })
+                "dashboard.html";
+
+
+        }
+
+    )
 
 
     // ==================================================
-    // HANDLE ERROR
+    // HANDLE CONNECTION / SERVER ERROR
     // ==================================================
 
-    .catch(error => {
+    .catch(
 
-        console.error(
-            "MASTERLIST LOGIN ERROR:",
-            error
-        );
+        error => {
 
 
-        errorBox.innerHTML =
-            "Unable to connect to the student database. Please try again.";
+            console.error(
 
-    });
+                "MASTERLIST LOGIN ERROR:",
+
+                error
+
+            );
+
+
+            errorBox.innerHTML =
+
+                "Unable to connect to the student database. Please try again.";
+
+
+        }
+
+    );
 
 }
