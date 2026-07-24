@@ -25,6 +25,7 @@ function loginAdmin() {
         "username"
     );
 
+
     const passwordBox =
     document.getElementById(
         "password"
@@ -729,14 +730,14 @@ async function saveSettings() {
 
 
 // ======================================================
-// OPEN ATTENDANCE SPREADSHEET
+// OPEN MAIN ROTC TRAINING GOOGLE DRIVE FOLDER
 // ======================================================
 
-function openSheet() {
+function openTrainingFiles() {
 
     window.open(
 
-        "https://docs.google.com/spreadsheets/d/1y0PmS9GcmH8WcPNxundYdl7BWgYa_gl_KCp-dUqNZzA/edit",
+        "https://drive.google.com/drive/u/0/folders/10gMqlULJh9Xa7aB_e4v7Y_oa7pAQ6CHu",
 
         "_blank"
 
