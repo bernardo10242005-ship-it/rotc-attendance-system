@@ -1,7 +1,10 @@
 // ======================================================
 // FULL BRIGHT COLLEGE
 // ROTC ATTENDANCE MANAGEMENT SYSTEM
-// attendance.js - COMPLETE VERSION
+// attendance.js
+//
+// ONE ATTENDANCE SUBMISSION PER STUDENT PER TRAINING DAY
+// PER CALENDAR DAY
 // ======================================================
 
 
@@ -46,7 +49,9 @@ document.addEventListener(
         );
 
 
-        // Load logged-in student
+        // ==================================================
+        // LOAD LOGGED-IN STUDENT
+        // ==================================================
 
         try {
 
@@ -71,7 +76,9 @@ document.addEventListener(
         }
 
 
-        // Check student login
+        // ==================================================
+        // CHECK STUDENT LOGIN
+        // ==================================================
 
         if (!student) {
 
@@ -83,12 +90,16 @@ document.addEventListener(
         }
 
 
-        // Display student information
+        // ==================================================
+        // DISPLAY STUDENT INFORMATION
+        // ==================================================
 
         displayStudent();
 
 
-        // Show loading status
+        // ==================================================
+        // SHOW LOADING STATUS
+        // ==================================================
 
         const gpsStatus =
         document.getElementById(
@@ -104,7 +115,9 @@ document.addEventListener(
         }
 
 
-        // Load settings
+        // ==================================================
+        // LOAD SETTINGS
+        // ==================================================
 
         loadSettings();
 
@@ -149,8 +162,8 @@ function displayStudent() {
         studentNumber.textContent =
         "Student Number: " +
         (
-            student.id ||
             student.studentNumber ||
+            student.id ||
             ""
         );
 
@@ -207,12 +220,6 @@ async function loadSettings() {
         );
 
 
-        console.log(
-            "HTTP Status:",
-            response.status
-        );
-
-
         if (!response.ok) {
 
             throw new Error(
@@ -227,12 +234,6 @@ async function loadSettings() {
 
         const text =
         await response.text();
-
-
-        console.log(
-            "Raw Apps Script Response:",
-            text
-        );
 
 
         if (!text) {
@@ -278,7 +279,9 @@ async function loadSettings() {
         );
 
 
-        // Check backend error
+        // ==================================================
+        // CHECK BACKEND ERROR
+        // ==================================================
 
         if (
             data.success === false
@@ -294,7 +297,9 @@ async function loadSettings() {
         }
 
 
-        // Save settings
+        // ==================================================
+        // SAVE SETTINGS
+        // ==================================================
 
         settings =
         data;
@@ -322,7 +327,9 @@ async function loadSettings() {
         );
 
 
-        // Check latitude
+        // ==================================================
+        // VALIDATE LATITUDE
+        // ==================================================
 
         if (
             isNaN(
@@ -337,7 +344,9 @@ async function loadSettings() {
         }
 
 
-        // Check longitude
+        // ==================================================
+        // VALIDATE LONGITUDE
+        // ==================================================
 
         if (
             isNaN(
@@ -352,7 +361,9 @@ async function loadSettings() {
         }
 
 
-        // Default radius
+        // ==================================================
+        // DEFAULT RADIUS
+        // ==================================================
 
         if (
             isNaN(
@@ -397,24 +408,22 @@ async function loadSettings() {
 
 
         // ==================================================
-        // SETTINGS LOADED SUCCESSFULLY
+        // SETTINGS LOADED
         // ==================================================
 
-        const gpsStatus =
-        document.getElementById(
-            "gpsStatus"
-        );
+        if (gpsStatusExists()) {
 
-
-        if (gpsStatus) {
-
-            gpsStatus.textContent =
+            document.getElementById(
+                "gpsStatus"
+            ).textContent =
             "🟡 Attendance settings loaded. Detecting GPS...";
 
         }
 
 
-        // Start system
+        // ==================================================
+        // START ATTENDANCE SYSTEM
+        // ==================================================
 
         initializeAttendance();
 
@@ -459,6 +468,19 @@ async function loadSettings() {
 
 
 // ======================================================
+// GPS STATUS HELPER
+// ======================================================
+
+function gpsStatusExists() {
+
+    return !!document.getElementById(
+        "gpsStatus"
+    );
+
+}
+
+
+// ======================================================
 // INITIALIZE ATTENDANCE SYSTEM
 // ======================================================
 
@@ -469,7 +491,9 @@ function initializeAttendance() {
     );
 
 
-    // Start date and time
+    // ==================================================
+    // START DATE AND TIME
+    // ==================================================
 
     updateClock();
 
@@ -483,17 +507,23 @@ function initializeAttendance() {
     );
 
 
-    // Start GPS
+    // ==================================================
+    // START GPS
+    // ==================================================
 
     startGPS();
 
 
-    // Start camera
+    // ==================================================
+    // START CAMERA
+    // ==================================================
 
     startCamera();
 
 
-    // Setup signature
+    // ==================================================
+    // SETUP SIGNATURE
+    // ==================================================
 
     setupSignature();
 
@@ -525,7 +555,9 @@ function updateClock() {
     if (date) {
 
         date.value =
-        now.toLocaleDateString();
+        now.toLocaleDateString(
+            "en-PH"
+        );
 
     }
 
@@ -533,7 +565,9 @@ function updateClock() {
     if (time) {
 
         time.value =
-        now.toLocaleTimeString();
+        now.toLocaleTimeString(
+            "en-PH"
+        );
 
     }
 
@@ -1675,6 +1709,42 @@ function attendanceOpen() {
 
 
 // ======================================================
+// GET CURRENT TRAINING DAY
+// ======================================================
+
+function getTrainingDay() {
+
+    return (
+
+        settings.trainingDay ||
+
+        ""
+
+    );
+
+}
+
+
+// ======================================================
+// GET STUDENT NUMBER
+// ======================================================
+
+function getStudentNumber() {
+
+    return (
+
+        student.studentNumber ||
+
+        student.id ||
+
+        ""
+
+    ).toString().trim();
+
+}
+
+
+// ======================================================
 // SUBMIT ATTENDANCE
 // ======================================================
 
@@ -1691,6 +1761,65 @@ async function submitAttendance() {
             "Attendance settings are still loading.\n\n" +
 
             "Please wait a moment and try again."
+
+        );
+
+        return;
+
+    }
+
+
+    // ==================================================
+    // GET TRAINING INFORMATION
+    // ==================================================
+
+    const trainingDay =
+    getTrainingDay();
+
+
+    const trainingTopic =
+
+    settings.trainingTopic ||
+
+    settings.topic ||
+
+    "";
+
+
+    // ==================================================
+    // CHECK TRAINING DAY
+    // ==================================================
+
+    if (!trainingDay) {
+
+        alert(
+
+            "❌ Training Day is not configured.\n\n" +
+
+            "Please contact the administrator."
+
+        );
+
+        return;
+
+    }
+
+
+    // ==================================================
+    // CHECK STUDENT NUMBER
+    // ==================================================
+
+    const studentNumber =
+    getStudentNumber();
+
+
+    if (!studentNumber) {
+
+        alert(
+
+            "❌ Student number is missing.\n\n" +
+
+            "Please log in again."
 
         );
 
@@ -1830,24 +1959,27 @@ async function submitAttendance() {
 
 
     const today =
-    now.toLocaleDateString();
+    now.toLocaleDateString(
+        "en-PH"
+    );
 
 
     // ==================================================
-    // ATTENDANCE KEY
+    // CREATE ATTENDANCE KEY
+    //
+    // This is only a local browser backup.
+    // The real duplicate protection is on the server.
     // ==================================================
 
     const attendanceKey =
 
-    (
+    "attendance_" +
 
-        student.id ||
+    studentNumber +
 
-        student.studentNumber
+    "_" +
 
-    )
-
-    +
+    trainingDay +
 
     "_" +
 
@@ -1855,23 +1987,30 @@ async function submitAttendance() {
 
 
     // ==================================================
-    // GET TRAINING INFORMATION
+    // CHECK LOCAL DUPLICATE
     // ==================================================
 
-    const trainingDay =
+    if (
 
-    settings.trainingDay ||
+        localStorage.getItem(
+            attendanceKey
+        )
 
-    "";
+    ) {
 
+        alert(
 
-    const trainingTopic =
+            "⚠️ You have already submitted attendance for " +
 
-    settings.trainingTopic ||
+            trainingDay +
 
-    settings.topic ||
+            " today."
 
-    "";
+        );
+
+        return;
+
+    }
 
 
     // ==================================================
@@ -1882,11 +2021,7 @@ async function submitAttendance() {
 
         studentNumber:
 
-        student.id ||
-
-        student.studentNumber ||
-
-        "",
+        studentNumber,
 
 
         name:
@@ -1910,23 +2045,15 @@ async function submitAttendance() {
         "",
 
 
-        // IMPORTANT:
-        // Training Day
-
         trainingDay:
 
         trainingDay,
 
 
-        // IMPORTANT:
-        // Training Topic
-
         trainingTopic:
 
         trainingTopic,
 
-
-        // Compatibility field
 
         topic:
 
@@ -1940,7 +2067,9 @@ async function submitAttendance() {
 
         time:
 
-        now.toLocaleTimeString(),
+        now.toLocaleTimeString(
+            "en-PH"
+        ),
 
 
         status:
@@ -1992,17 +2121,7 @@ async function submitAttendance() {
 
         photoFileName:
 
-        (
-
-            student.id ||
-
-            student.studentNumber ||
-
-            "student"
-
-        )
-
-        +
+        studentNumber +
 
         "_" +
 
@@ -2012,9 +2131,7 @@ async function submitAttendance() {
 
             "_"
 
-        )
-
-        +
+        ) +
 
         "_" +
 
@@ -2024,26 +2141,14 @@ async function submitAttendance() {
 
             "-"
 
-        )
-
-        +
+        ) +
 
         "_selfie.png",
 
 
         signatureFileName:
 
-        (
-
-            student.id ||
-
-            student.studentNumber ||
-
-            "student"
-
-        )
-
-        +
+        studentNumber +
 
         "_" +
 
@@ -2053,9 +2158,7 @@ async function submitAttendance() {
 
             "_"
 
-        )
-
-        +
+        ) +
 
         "_" +
 
@@ -2065,9 +2168,7 @@ async function submitAttendance() {
 
             "-"
 
-        )
-
-        +
+        ) +
 
         "_signature.png"
 
@@ -2075,28 +2176,19 @@ async function submitAttendance() {
 
 
     // ==================================================
-    // SAVE LOCAL COPY
-    // ==================================================
-
-    localStorage.setItem(
-
-        attendanceKey,
-
-        JSON.stringify(
-            attendance
-        )
-
-    );
-
-
-    // ==================================================
-    // SEND TO GOOGLE APPS SCRIPT
+    // SUBMIT TO GOOGLE APPS SCRIPT
     // ==================================================
 
     try {
 
         console.log(
             "Submitting attendance..."
+        );
+
+
+        console.log(
+            "Student Number:",
+            studentNumber
         );
 
 
@@ -2178,9 +2270,43 @@ async function submitAttendance() {
         }
 
 
+        // ==================================================
+        // SERVER ACCEPTED ATTENDANCE
+        // ==================================================
+
         if (
             result.success
         ) {
+
+            // Save local duplicate marker
+            // ONLY AFTER server accepts it.
+
+            localStorage.setItem(
+
+                attendanceKey,
+
+                JSON.stringify({
+
+                    studentNumber:
+
+                    studentNumber,
+
+                    trainingDay:
+
+                    trainingDay,
+
+                    date:
+
+                    today,
+
+                    submittedAt:
+
+                    new Date().toISOString()
+
+                })
+
+            );
+
 
             alert(
 
@@ -2198,7 +2324,43 @@ async function submitAttendance() {
 
         }
 
+
+        // ==================================================
+        // SERVER REJECTED ATTENDANCE
+        // ==================================================
+
         else {
+
+            // IMPORTANT:
+            // If server says already submitted,
+            // do not save local attendance marker
+            // because the server is the final authority.
+
+            if (
+
+                result.code ===
+                "ALREADY_SUBMITTED"
+
+            ) {
+
+                alert(
+
+                    "⚠️ Attendance Already Submitted\n\n" +
+
+                    "You have already submitted attendance for " +
+
+                    trainingDay +
+
+                    " today.\n\n" +
+
+                    "You cannot submit attendance again today."
+
+                );
+
+                return;
+
+            }
+
 
             alert(
 
