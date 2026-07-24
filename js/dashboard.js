@@ -9,7 +9,9 @@
 // ======================================================
 
 const studentJSON =
-    localStorage.getItem("student");
+    localStorage.getItem(
+        "student"
+    );
 
 
 // ======================================================
@@ -43,9 +45,10 @@ const studentNameElement =
         "studentName"
     );
 
+
 if (studentNameElement) {
 
-    studentNameElement.innerHTML =
+    studentNameElement.textContent =
         student.name ||
         "";
 
@@ -54,13 +57,6 @@ if (studentNameElement) {
 
 // ======================================================
 // DISPLAY STUDENT NUMBER
-//
-// IMPORTANT:
-// Google Apps Script returns:
-// student.studentNumber
-//
-// NOT:
-// student.id
 // ======================================================
 
 const studentIDElement =
@@ -68,9 +64,10 @@ const studentIDElement =
         "studentID"
     );
 
+
 if (studentIDElement) {
 
-    studentIDElement.innerHTML =
+    studentIDElement.textContent =
         student.studentNumber ||
         "";
 
@@ -86,9 +83,10 @@ const courseElement =
         "course"
     );
 
+
 if (courseElement) {
 
-    courseElement.innerHTML =
+    courseElement.textContent =
         student.course ||
         "";
 
@@ -104,9 +102,10 @@ const yearElement =
         "year"
     );
 
+
 if (yearElement) {
 
-    yearElement.innerHTML =
+    yearElement.textContent =
         student.year ||
         "";
 
@@ -122,9 +121,10 @@ const flightElement =
         "flight"
     );
 
+
 if (flightElement) {
 
-    flightElement.innerHTML =
+    flightElement.textContent =
         student.flight ||
         "";
 
@@ -140,9 +140,10 @@ const studentTypeElement =
         "studentType"
     );
 
+
 if (studentTypeElement) {
 
-    studentTypeElement.innerHTML =
+    studentTypeElement.textContent =
         student.studentType ||
         "";
 
@@ -158,11 +159,15 @@ const meritsElement =
         "merits"
     );
 
+
 if (meritsElement) {
 
-    meritsElement.innerHTML =
-        student.merits ||
-        "0";
+    meritsElement.textContent =
+        student.merits !== undefined &&
+        student.merits !== null &&
+        student.merits !== ""
+            ? student.merits
+            : "0";
 
 }
 
@@ -176,13 +181,39 @@ const demeritsElement =
         "demerits"
     );
 
+
 if (demeritsElement) {
 
-    demeritsElement.innerHTML =
-        student.demerits ||
-        "0";
+    demeritsElement.textContent =
+        student.demerits !== undefined &&
+        student.demerits !== null &&
+        student.demerits !== ""
+            ? student.demerits
+            : "0";
 
 }
+
+
+// ======================================================
+// DEBUG INFORMATION
+// ======================================================
+
+console.log(
+    "Logged-in Student:",
+    student
+);
+
+
+console.log(
+    "Student Merits:",
+    student.merits
+);
+
+
+console.log(
+    "Student Demerits:",
+    student.demerits
+);
 
 
 // ======================================================
@@ -190,6 +221,7 @@ if (demeritsElement) {
 // ======================================================
 
 function updateClock() {
+
 
     const now =
         new Date();
@@ -207,7 +239,7 @@ function updateClock() {
 
     if (todayElement) {
 
-        todayElement.innerHTML =
+        todayElement.textContent =
             now.toLocaleDateString(
 
                 "en-PH",
@@ -245,7 +277,7 @@ function updateClock() {
 
     if (clockElement) {
 
-        clockElement.innerHTML =
+        clockElement.textContent =
             now.toLocaleTimeString(
                 "en-PH"
             );
@@ -261,9 +293,13 @@ function updateClock() {
 
 updateClock();
 
+
 setInterval(
+
     updateClock,
+
     1000
+
 );
 
 
@@ -273,6 +309,7 @@ setInterval(
 
 function logout() {
 
+
     // Remove student information
 
     localStorage.removeItem(
@@ -280,7 +317,7 @@ function logout() {
     );
 
 
-    // Return to home page
+    // Return to login/home page
 
     window.location.href =
         "index.html";
