@@ -5,6 +5,13 @@
 //
 // ONE ATTENDANCE SUBMISSION PER STUDENT PER TRAINING DAY
 // PER CALENDAR DAY
+//
+// IMPROVED VERSION
+// - Responsive signature canvas coordinates
+// - Responsive camera capture
+// - Mobile touch support
+// - GPS verification
+// - Google Apps Script submission
 // ======================================================
 
 
@@ -34,6 +41,8 @@ let distanceMeters = 999999;
 let photoTaken = false;
 let drawing = false;
 let signed = false;
+
+let cameraStream = null;
 
 
 // ======================================================
@@ -1026,7 +1035,7 @@ async function getAddress(
 // CAMERA
 // ======================================================
 
-function startCamera() {
+async function startCamera() {
 
     const video =
     document.getElementById(
@@ -1061,51 +1070,55 @@ function startCamera() {
     }
 
 
-    navigator.mediaDevices
-    .getUserMedia({
+    try {
 
-        video:
-        true
+        cameraStream =
+        await navigator.mediaDevices.getUserMedia({
 
-    })
+            video: {
 
-    .then(
+                facingMode:
+                "user"
 
-        function (stream) {
+            },
 
-            video.srcObject =
-            stream;
+            audio:
+            false
 
-
-            console.log(
-                "Camera started."
-            );
-
-        }
-
-    )
-
-    .catch(
-
-        function (error) {
-
-            console.error(
-                "Camera Error:",
-                error
-            );
+        });
 
 
-            alert(
+        video.srcObject =
+        cameraStream;
 
-                "Unable to access camera.\n\n" +
 
-                "Please allow camera permission for this website."
+        await video.play();
 
-            );
 
-        }
+        console.log(
+            "Camera started."
+        );
 
-    );
+    }
+
+
+    catch (error) {
+
+        console.error(
+            "Camera Error:",
+            error
+        );
+
+
+        alert(
+
+            "Unable to access camera.\n\n" +
+
+            "Please allow camera permission for this website."
+
+        );
+
+    }
 
 }
 
@@ -1142,9 +1155,86 @@ function takePhoto() {
     }
 
 
+    if (
+        video.readyState <
+        2
+    ) {
+
+        alert(
+            "Camera is still loading. Please wait a moment."
+        );
+
+        return;
+
+    }
+
+
     const ctx =
     canvas.getContext(
         "2d"
+    );
+
+
+    // ==================================================
+    // GET REAL CAMERA DIMENSIONS
+    // ==================================================
+
+    const videoWidth =
+    video.videoWidth;
+
+
+    const videoHeight =
+    video.videoHeight;
+
+
+    if (
+        !videoWidth ||
+        !videoHeight
+    ) {
+
+        alert(
+            "Camera image is not ready yet."
+        );
+
+        return;
+
+    }
+
+
+    // ==================================================
+    // KEEP CANVAS ASPECT RATIO
+    // ==================================================
+
+    canvas.width =
+    videoWidth;
+
+
+    canvas.height =
+    videoHeight;
+
+
+    // ==================================================
+    // MIRROR SELFIE
+    // ==================================================
+
+    ctx.save();
+
+
+    ctx.translate(
+
+        canvas.width,
+
+        0
+
+    );
+
+
+    ctx.scale(
+
+        -1,
+
+        1
+
     );
 
 
@@ -1163,8 +1253,19 @@ function takePhoto() {
     );
 
 
+    ctx.restore();
+
+
     photoTaken =
     true;
+
+
+    console.log(
+        "Photo captured:",
+        canvas.width,
+        "x",
+        canvas.height
+    );
 
 
     alert(
@@ -1199,6 +1300,10 @@ function setupSignature() {
     );
 
 
+    // ==================================================
+    // SET CANVAS BACKGROUND
+    // ==================================================
+
     signCtx.fillStyle =
     "white";
 
@@ -1228,29 +1333,53 @@ function setupSignature() {
     "round";
 
 
+    signCtx.lineJoin =
+    "round";
+
+
+    // ==================================================
+    // MOUSE EVENTS
+    // ==================================================
+
     signature.addEventListener(
+
         "mousedown",
+
         startMouse
+
     );
 
 
     signature.addEventListener(
+
         "mousemove",
+
         drawMouse
+
     );
 
 
     signature.addEventListener(
+
         "mouseup",
+
         stopDrawing
+
     );
 
 
     signature.addEventListener(
+
         "mouseleave",
+
         stopDrawing
+
     );
 
+
+    // ==================================================
+    // TOUCH EVENTS
+    // ==================================================
 
     signature.addEventListener(
 
@@ -1259,8 +1388,10 @@ function setupSignature() {
         startTouch,
 
         {
+
             passive:
             false
+
         }
 
     );
@@ -1273,8 +1404,10 @@ function setupSignature() {
         drawTouch,
 
         {
+
             passive:
             false
+
         }
 
     );
@@ -1284,7 +1417,30 @@ function setupSignature() {
 
         "touchend",
 
-        stopDrawing
+        stopDrawing,
+
+        {
+
+            passive:
+            false
+
+        }
+
+    );
+
+
+    signature.addEventListener(
+
+        "touchcancel",
+
+        stopDrawing,
+
+        {
+
+            passive:
+            false
+
+        }
 
     );
 
@@ -1292,10 +1448,17 @@ function setupSignature() {
 
 
 // ======================================================
-// MOUSE SIGNATURE
+// GET RESPONSIVE CANVAS POSITION
+// FIXES OFFSET ON DIFFERENT PHONE SCREENS
 // ======================================================
 
-function getMousePos(e) {
+function getCanvasCoordinates(
+
+    clientX,
+
+    clientY
+
+) {
 
     const signature =
     document.getElementById(
@@ -1307,22 +1470,73 @@ function getMousePos(e) {
     signature.getBoundingClientRect();
 
 
+    const scaleX =
+
+    signature.width /
+    rect.width;
+
+
+    const scaleY =
+
+    signature.height /
+    rect.height;
+
+
     return {
 
         x:
-        e.clientX -
-        rect.left,
+
+        (
+
+            clientX -
+            rect.left
+
+        ) *
+
+        scaleX,
+
 
         y:
-        e.clientY -
-        rect.top
+
+        (
+
+            clientY -
+            rect.top
+
+        ) *
+
+        scaleY
 
     };
 
 }
 
 
+// ======================================================
+// MOUSE POSITION
+// ======================================================
+
+function getMousePos(e) {
+
+    return getCanvasCoordinates(
+
+        e.clientX,
+
+        e.clientY
+
+    );
+
+}
+
+
+// ======================================================
+// START MOUSE DRAWING
+// ======================================================
+
 function startMouse(e) {
+
+    e.preventDefault();
+
 
     const signature =
     document.getElementById(
@@ -1364,6 +1578,10 @@ function startMouse(e) {
 }
 
 
+// ======================================================
+// DRAW WITH MOUSE
+// ======================================================
+
 function drawMouse(e) {
 
     if (
@@ -1373,6 +1591,9 @@ function drawMouse(e) {
         return;
 
     }
+
+
+    e.preventDefault();
 
 
     const signature =
@@ -1408,39 +1629,45 @@ function drawMouse(e) {
 
 
 // ======================================================
-// TOUCH SIGNATURE
+// TOUCH POSITION
 // ======================================================
 
 function getTouchPos(e) {
 
-    const signature =
-    document.getElementById(
-        "signature"
-    );
-
-
-    const rect =
-    signature.getBoundingClientRect();
-
-
     const touch =
+
     e.touches[0];
 
 
-    return {
+    if (!touch) {
 
-        x:
-        touch.clientX -
-        rect.left,
+        return {
 
-        y:
-        touch.clientY -
-        rect.top
+            x:
+            0,
 
-    };
+            y:
+            0
+
+        };
+
+    }
+
+
+    return getCanvasCoordinates(
+
+        touch.clientX,
+
+        touch.clientY
+
+    );
 
 }
 
+
+// ======================================================
+// START TOUCH DRAWING
+// ======================================================
 
 function startTouch(e) {
 
@@ -1486,6 +1713,10 @@ function startTouch(e) {
 
 }
 
+
+// ======================================================
+// DRAW WITH TOUCH
+// ======================================================
 
 function drawTouch(e) {
 
@@ -1619,6 +1850,10 @@ function clearSignature() {
 
 
     ctx.lineCap =
+    "round";
+
+
+    ctx.lineJoin =
     "round";
 
 }
@@ -1966,9 +2201,6 @@ async function submitAttendance() {
 
     // ==================================================
     // CREATE ATTENDANCE KEY
-    //
-    // This is only a local browser backup.
-    // The real duplicate protection is on the server.
     // ==================================================
 
     const attendanceKey =
@@ -2006,6 +2238,40 @@ async function submitAttendance() {
 
             " today."
 
+        );
+
+        return;
+
+    }
+
+
+    // ==================================================
+    // GET PHOTO CANVAS
+    // ==================================================
+
+    const photoCanvas =
+    document.getElementById(
+        "photo"
+    );
+
+
+    // ==================================================
+    // GET SIGNATURE CANVAS
+    // ==================================================
+
+    const signatureCanvas =
+    document.getElementById(
+        "signature"
+    );
+
+
+    if (
+        !photoCanvas ||
+        !signatureCanvas
+    ) {
+
+        alert(
+            "Photo or signature canvas was not found."
         );
 
         return;
@@ -2103,18 +2369,14 @@ async function submitAttendance() {
 
         photo:
 
-        document.getElementById(
-            "photo"
-        ).toDataURL(
+        photoCanvas.toDataURL(
             "image/png"
         ),
 
 
         signature:
 
-        document.getElementById(
-            "signature"
-        ).toDataURL(
+        signatureCanvas.toDataURL(
             "image/png"
         ),
 
@@ -2319,6 +2581,11 @@ async function submitAttendance() {
             );
 
 
+            // Stop camera after successful submission
+
+            stopCamera();
+
+
             window.location.href =
             "dashboard.html";
 
@@ -2330,11 +2597,6 @@ async function submitAttendance() {
         // ==================================================
 
         else {
-
-            // IMPORTANT:
-            // If server says already submitted,
-            // do not save local attendance marker
-            // because the server is the final authority.
 
             if (
 
@@ -2396,6 +2658,51 @@ async function submitAttendance() {
             error.message
 
         );
+
+    }
+
+}
+
+
+// ======================================================
+// STOP CAMERA
+// ======================================================
+
+function stopCamera() {
+
+    if (
+        cameraStream
+    ) {
+
+        cameraStream
+        .getTracks()
+        .forEach(
+
+            function (track) {
+
+                track.stop();
+
+            }
+
+        );
+
+
+        cameraStream =
+        null;
+
+    }
+
+
+    const video =
+    document.getElementById(
+        "video"
+    );
+
+
+    if (video) {
+
+        video.srcObject =
+        null;
 
     }
 
