@@ -1,76 +1,108 @@
+/* =====================================================
+   FULL BRIGHT COLLEGE
+   ROTC ATTENDANCE MANAGEMENT SYSTEM
+   PHILIPPINE AIR FORCE THEME
+===================================================== */
+
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Arial, Helvetica, sans-serif;
+    font-family:"Segoe UI",Arial,sans-serif;
 }
 
 body{
 
-    background:#102315;
-
     min-height:100vh;
 
+    background:
+    linear-gradient(rgba(4,25,45,.88),rgba(7,18,35,.95)),
+    url("https://images.unsplash.com/photo-1517479149777-5f3b1511d5ad?auto=format&fit=crop&w=1600&q=80");
+
+    background-size:cover;
+    background-position:center;
+
     display:flex;
-
     justify-content:center;
-
     align-items:center;
 
-    padding:20px;
+    overflow:hidden;
 
 }
 
-.container{
+/* ========================================= */
+
+.landing-container{
 
     width:100%;
-    max-width:520px;
+    padding:25px;
 
-    background:#17351f;
+    display:flex;
+    justify-content:center;
+    align-items:center;
 
-    border-radius:20px;
+}
 
-    padding:40px;
+/* ========================================= */
+
+.landing-card{
+
+    width:100%;
+    max-width:620px;
+
+    background:rgba(9,28,55,.92);
+
+    backdrop-filter:blur(12px);
+
+    border:2px solid rgba(255,215,0,.25);
+
+    border-radius:25px;
+
+    padding:45px;
 
     text-align:center;
 
-    box-shadow:0 10px 35px rgba(0,0,0,.5);
+    animation:fadeIn 1s ease;
 
-    animation:fadeIn .8s;
+    box-shadow:
+    0 0 40px rgba(0,0,0,.55);
 
 }
 
-.logo-area{
+/* ========================================= */
+
+.logo-group{
 
     display:flex;
-
     justify-content:center;
+    gap:45px;
 
-    gap:40px;
-
-    margin-bottom:25px;
-
-    flex-wrap:wrap;
+    margin-bottom:30px;
 
 }
 
-.logo{
+.landing-logo{
 
     width:120px;
-
     height:120px;
 
     object-fit:contain;
 
+    filter:drop-shadow(0 0 12px rgba(255,255,255,.15));
+
 }
+
+/* ========================================= */
 
 h1{
 
-    color:gold;
+    color:#FFD700;
 
-    font-size:48px;
+    font-size:38px;
 
-    margin-bottom:10px;
+    letter-spacing:1px;
+
+    margin-bottom:8px;
 
 }
 
@@ -78,384 +110,161 @@ h2{
 
     color:white;
 
-    margin-bottom:20px;
+    font-size:24px;
 
-    font-size:32px;
+    margin-bottom:10px;
 
 }
 
-p{
+.subtitle{
 
-    color:#ddd;
+    color:#c8d8ea;
+
+    font-size:17px;
 
     margin-bottom:35px;
 
-    font-size:22px;
+}
+
+/* ========================================= */
+
+.button-group{
+
+    display:flex;
+    flex-direction:column;
+    gap:18px;
 
 }
 
-.btn{
+/* ========================================= */
 
-    display:block;
-
-    width:100%;
-
-    background:gold;
-
-    color:black;
+.landing-btn{
 
     text-decoration:none;
 
-    padding:18px;
-
-    border-radius:12px;
-
-    font-size:22px;
-
-    font-weight:bold;
-
-    margin-top:18px;
-
-    transition:.3s;
-
-}
-
-.btn:hover{
-
-    background:white;
-
-    transform:scale(1.03);
-
-}
-
-input{
-
-    width:100%;
-
-    padding:16px;
-
-    margin-top:18px;
-
-    border:none;
-
-    border-radius:10px;
-
-    font-size:18px;
-
-}
-
-button{
-
-    width:100%;
-
-    padding:18px;
-
-    margin-top:20px;
-
-    background:gold;
-
-    border:none;
-
-    border-radius:10px;
+    color:white;
 
     font-size:20px;
 
     font-weight:bold;
 
-    cursor:pointer;
+    padding:18px;
 
-    transition:.3s;
+    border-radius:14px;
 
-}
-
-button:hover{
-
-    background:white;
-
-    transform:scale(1.03);
+    transition:.30s;
 
 }
 
-table{
+/* ========================================= */
 
-    width:100%;
+.student{
 
-    border-collapse:collapse;
-
-    margin-top:20px;
+    background:#0B5ED7;
 
 }
 
-table th{
+.student:hover{
 
-    background:gold;
+    transform:translateY(-3px);
 
-    color:black;
-
-    padding:12px;
+    box-shadow:0 0 25px rgba(11,94,215,.5);
 
 }
 
-table td{
+/* ========================================= */
 
-    padding:12px;
+.flight{
 
-    border:1px solid #333;
-
-    color:white;
+    background:#0F5132;
 
 }
+
+.flight:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:0 0 25px rgba(25,135,84,.5);
+
+}
+
+/* ========================================= */
+
+.admin{
+
+    background:#8B0000;
+
+}
+
+.admin:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:0 0 25px rgba(220,53,69,.5);
+
+}
+
+/* ========================================= */
 
 @keyframes fadeIn{
 
     from{
 
         opacity:0;
-
-        transform:translateY(30px);
+        transform:translateY(40px);
 
     }
 
     to{
 
         opacity:1;
-
         transform:translateY(0);
 
     }
 
 }
 
-@media(max-width:768px){
+/* ========================================= */
 
-.logo{
+@media(max-width:700px){
 
-width:90px;
+.landing-card{
 
-height:90px;
+padding:30px;
+
+}
+
+.logo-group{
+
+gap:25px;
+
+}
+
+.landing-logo{
+
+width:85px;
+height:85px;
 
 }
 
 h1{
 
-font-size:34px;
+font-size:28px;
 
 }
 
 h2{
 
-font-size:24px;
+font-size:20px;
 
 }
 
-p{
+.landing-btn{
 
 font-size:18px;
-
-}
-
-.container{
-
-padding:25px;
-
-}
-
-.btn{
-
-font-size:20px;
 
 padding:16px;
 
 }
-
-}
-input{
-
-    width:100%;
-
-    padding:15px;
-
-    margin:10px 0;
-
-    border:none;
-
-    border-radius:8px;
-
-    font-size:18px;
-
-    outline:none;
-
-}
-
-h1{
-
-    color:gold;
-
-    margin-bottom:25px;
-
-}
-
-.logo{
-
-    width:90px;
-
-    margin:10px;
-
-}
-
-.btn{
-
-    display:block;
-
-    width:100%;
-
-    margin-top:15px;
-
-    cursor:pointer;
-
-}
-.profile-box{
-
-background:#18431f;
-
-padding:20px;
-
-border-radius:15px;
-
-margin-top:20px;
-
-text-align:left;
-
-color:white;
-
-}
-
-.profile-box p{
-
-font-size:20px;
-
-margin:10px 0;
-
-}
-
-.logoutBtn{
-
-background:#b22222;
-
-}
-
-.logoutBtn:hover{
-
-background:#8b0000;
-
-}
-
-/* ======================================================
-   ROTC ATTENDANCE - CAMERA AND SIGNATURE RESPONSIVE FIX
-   ====================================================== */
-
-/* Camera */
-#video {
-    display: block;
-    width: 100%;
-    max-width: 320px;
-    height: auto;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-    margin: 15px auto;
-    border-radius: 12px;
-    background: #000;
-}
-
-/* Captured photo */
-#photo {
-    display: block;
-    width: 100%;
-    max-width: 320px;
-    height: auto;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-    margin: 15px auto;
-    border-radius: 12px;
-    background: white;
-}
-
-/* Signature canvas */
-#signature {
-    display: block;
-    width: 100%;
-    max-width: 320px;
-    height: 160px;
-    margin: 15px auto;
-    border: 2px solid white;
-    border-radius: 10px;
-    background: white;
-    touch-action: none;
-}
-
-/* Make headings and labels fit better */
-.container h3 {
-    color: gold;
-    margin-top: 20px;
-    margin-bottom: 15px;
-}
-
-/* Make attendance information easier to read */
-.container label {
-    display: block;
-    color: white;
-    font-weight: bold;
-    text-align: left;
-    margin-top: 12px;
-}
-
-/* Responsive mobile adjustments */
-@media (max-width: 600px) {
-
-    body {
-        padding: 10px;
-        align-items: flex-start;
-    }
-
-    .container {
-        width: 100%;
-        max-width: 100%;
-        padding: 20px 15px;
-        margin-top: 10px;
-        border-radius: 15px;
-    }
-
-    #video,
-    #photo,
-    #signature {
-        max-width: 100%;
-    }
-
-    #signature {
-        height: 160px;
-    }
-
-}
-
-/* Very small phones */
-@media (max-width: 360px) {
-
-    body {
-        padding: 5px;
-    }
-
-    .container {
-        padding: 15px 10px;
-    }
-
-    #video,
-    #photo {
-        width: 100%;
-    }
-
-    #signature {
-        width: 100%;
-        height: 140px;
-    }
 
 }
