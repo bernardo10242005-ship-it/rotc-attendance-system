@@ -268,3 +268,168 @@ padding:16px;
 }
 
 }
+/* =========================================
+   UNIVERSAL CONTAINER
+========================================= */
+
+.container{
+
+    width:100%;
+    max-width:700px;
+
+    background:rgba(9,28,55,.92);
+
+    backdrop-filter:blur(12px);
+
+    border:2px solid rgba(255,215,0,.25);
+
+    border-radius:20px;
+
+    padding:40px;
+
+    color:white;
+
+    box-shadow:0 0 40px rgba(0,0,0,.45);
+
+}
+
+/* ========================================= */
+
+.logo-area{
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:30px;
+
+    margin-bottom:25px;
+
+}
+
+.logo{
+
+    width:90px;
+
+    height:90px;
+
+    object-fit:contain;
+
+}
+
+/* ========================================= */
+
+.container h1{
+
+    color:#FFD700;
+
+    text-align:center;
+
+    margin-bottom:10px;
+
+}
+
+.container h2{
+
+    color:white;
+
+    margin-top:15px;
+
+    margin-bottom:10px;
+
+}
+
+.container p{
+
+    color:#d8d8d8;
+
+    text-align:center;
+
+    margin-bottom:15px;
+
+}
+
+/* ========================================= */
+
+label{
+
+    display:block;
+
+    margin-bottom:6px;
+
+    font-weight:bold;
+
+}
+
+/* ========================================= */
+
+input,
+select{
+
+    width:100%;
+
+    padding:12px;
+
+    border-radius:8px;
+
+    border:none;
+
+    outline:none;
+
+    font-size:16px;
+
+}
+
+/* ========================================= */
+
+.btn{
+
+    width:100%;
+
+    padding:14px;
+
+    background:#0B5ED7;
+
+    color:white;
+
+    border:none;
+
+    border-radius:10px;
+
+    font-size:17px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.btn:hover{
+
+    background:#0d6efd;
+
+}
+
+.logoutBtn{
+
+    background:#8B0000;
+
+}
+
+.logoutBtn:hover{
+
+    background:#b00020;
+
+}
+
+/* ========================================= */
+
+hr{
+
+    margin:25px 0;
+
+    border:1px solid rgba(255,255,255,.15);
+
+}
