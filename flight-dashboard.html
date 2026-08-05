@@ -1,1 +1,79 @@
 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Flight Leader Dashboard</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>PHILIPPINE AIR FORCE ROTC</h1>
+
+    <h2>FLIGHT LEADER DASHBOARD</h2>
+
+    <hr>
+
+    <h2 id="flightName"></h2>
+
+    <p>
+        Welcome Flight Leader.
+    </p>
+
+    <hr>
+
+    <h3>Select Training Day</h3>
+
+    <select id="trainingDay">
+
+        <option value="Training Day 1">Training Day 1</option>
+
+        <option value="Training Day 2">Training Day 2</option>
+
+        <option value="Training Day 3">Training Day 3</option>
+
+        <option value="Training Day 4">Training Day 4</option>
+
+        <option value="Training Day 5">Training Day 5</option>
+
+        <option value="Training Day 6">Training Day 6</option>
+
+        <option value="Training Day 7">Training Day 7</option>
+
+        <option value="Training Day 8">Training Day 8</option>
+
+    </select>
+
+    <br><br>
+
+    <button class="btn" onclick="openAttendance()">
+
+        📋 VIEW ATTENDANCE
+
+    </button>
+
+    <br><br>
+
+    <button class="btn logoutBtn" onclick="logoutFlightLeader()">
+
+        LOGOUT
+
+    </button>
+
+</div>
+
+<script src="js/flight-dashboard.js"></script>
+
+</body>
+
+</html>
