@@ -1,10 +1,8 @@
 // ======================================================
 // FULL BRIGHT COLLEGE
 // ROTC ATTENDANCE MANAGEMENT SYSTEM
-// ADMIN.JS
-// COMPLETE VERSION
+// ADMIN LOGIN JS
 // ======================================================
-
 
 // ======================================================
 // GOOGLE APPS SCRIPT WEB APP URL
@@ -15,69 +13,64 @@ const APPS_SCRIPT_URL =
 
 
 // ======================================================
+// SHOW / HIDE PASSWORD
+// ======================================================
+
+function togglePassword(){
+
+    const pass=document.getElementById("password");
+
+    if(!pass) return;
+
+    if(pass.type==="password"){
+
+        pass.type="text";
+
+    }else{
+
+        pass.type="password";
+
+    }
+
+}
+
+
+// ======================================================
 // ADMIN LOGIN
 // ======================================================
 
-function loginAdmin() {
+function loginAdmin(){
 
-    const usernameBox =
-    document.getElementById(
-        "username"
-    );
+    const username=document.getElementById("username").value.trim();
+    const password=document.getElementById("password").value.trim();
+    const error=document.getElementById("error");
 
+    if(error) error.textContent="";
 
-    const passwordBox =
-    document.getElementById(
-        "password"
-    );
+    // ===== YOUR ADMIN ACCOUNT =====
 
+    if(
 
-    if (
-        !usernameBox ||
-        !passwordBox
-    ) {
+        username.toUpperCase()==="SIR IAN" &&
+        password==="BERNS10242005@"
 
-        return;
+    ){
 
-    }
+        localStorage.setItem("adminLoggedIn","true");
 
-
-    const username =
-    usernameBox.value.trim();
-
-
-    const password =
-    passwordBox.value.trim();
-
-
-    if (
-        username === "IAN" &&
-        password === "10242005"
-    ) {
-
-        localStorage.setItem(
-            "adminLoggedIn",
-            "true"
-        );
-
-
-        window.location.href =
-        "admin-dashboard.html";
+        window.location.href="admin-dashboard.html";
 
     }
 
-    else {
+    else{
 
-        const error =
-        document.getElementById(
-            "error"
-        );
+        if(error){
 
+            error.textContent="Invalid Username or Password.";
 
-        if (error) {
+        }else{
 
-            error.textContent =
-            "Invalid Username or Password.";
+            alert("Invalid Username or Password.");
 
         }
 
@@ -90,201 +83,55 @@ function loginAdmin() {
 // LOAD ADMIN SETTINGS
 // ======================================================
 
-async function loadAdminSettings() {
+async function loadAdminSettings(){
 
-    try {
+    try{
 
-        const response =
-        await fetch(
+        const response=await fetch(
 
-            APPS_SCRIPT_URL +
-            "?t=" +
-            Date.now(),
+            APPS_SCRIPT_URL+"?t="+Date.now(),
 
             {
 
-                method:
-                "GET",
+                method:"GET",
 
-                cache:
-                "no-store"
+                cache:"no-store"
 
             }
 
         );
 
+        const settings=await response.json();
 
-        if (!response.ok) {
+        if(document.getElementById("attendanceStatus"))
+        document.getElementById("attendanceStatus").value=settings.status||"CLOSED";
 
-            throw new Error(
-                "HTTP Error: " +
-                response.status
-            );
+        if(document.getElementById("trainingDay"))
+        document.getElementById("trainingDay").value=settings.trainingDay||"";
 
-        }
+        if(document.getElementById("trainingTopic"))
+        document.getElementById("trainingTopic").value=settings.trainingTopic||"";
 
+        if(document.getElementById("latitude"))
+        document.getElementById("latitude").value=settings.latitude||"";
 
-        const settings =
-        await response.json();
+        if(document.getElementById("longitude"))
+        document.getElementById("longitude").value=settings.longitude||"";
 
+        if(document.getElementById("radius"))
+        document.getElementById("radius").value=settings.radius||"200";
 
-        console.log(
-            "Settings loaded:",
-            settings
-        );
+        if(document.getElementById("startTime"))
+        document.getElementById("startTime").value=settings.startTime||"07:00";
 
-
-        if (
-            settings.success === false
-        ) {
-
-            throw new Error(
-
-                settings.message ||
-
-                "Unable to load settings."
-
-            );
-
-        }
-
-
-        const status =
-        document.getElementById(
-            "attendanceStatus"
-        );
-
-
-        const trainingDay =
-        document.getElementById(
-            "trainingDay"
-        );
-
-
-        const trainingTopic =
-        document.getElementById(
-            "trainingTopic"
-        );
-
-
-        const latitude =
-        document.getElementById(
-            "latitude"
-        );
-
-
-        const longitude =
-        document.getElementById(
-            "longitude"
-        );
-
-
-        const radius =
-        document.getElementById(
-            "radius"
-        );
-
-
-        const startTime =
-        document.getElementById(
-            "startTime"
-        );
-
-
-        const endTime =
-        document.getElementById(
-            "endTime"
-        );
-
-
-        if (status) {
-
-            status.value =
-            settings.status ||
-            "CLOSED";
-
-        }
-
-
-        if (trainingDay) {
-
-            trainingDay.value =
-            settings.trainingDay ||
-            "";
-
-        }
-
-
-        if (trainingTopic) {
-
-            trainingTopic.value =
-            settings.trainingTopic ||
-            "";
-
-        }
-
-
-        if (latitude) {
-
-            latitude.value =
-            settings.latitude ||
-            "";
-
-        }
-
-
-        if (longitude) {
-
-            longitude.value =
-            settings.longitude ||
-            "";
-
-        }
-
-
-        if (radius) {
-
-            radius.value =
-            settings.radius ||
-            "200";
-
-        }
-
-
-        if (startTime) {
-
-            startTime.value =
-            settings.startTime ||
-            "07:00";
-
-        }
-
-
-        if (endTime) {
-
-            endTime.value =
-            settings.endTime ||
-            "12:00";
-
-        }
+        if(document.getElementById("endTime"))
+        document.getElementById("endTime").value=settings.endTime||"12:00";
 
     }
 
-    catch(error) {
+    catch(error){
 
-        console.error(
-            "Settings Error:",
-            error
-        );
-
-
-        alert(
-
-            "❌ Unable to load attendance settings.\n\n" +
-
-            error.message
-
-        );
+        console.error(error);
 
     }
 
@@ -292,136 +139,52 @@ async function loadAdminSettings() {
 
 
 // ======================================================
-// GET CURRENT LOCATION
+// GET GPS
 // ======================================================
 
-function getCurrentLocation() {
+function getCurrentLocation(){
 
-    if (
-        !navigator.geolocation
-    ) {
+    if(!navigator.geolocation){
 
-        alert(
-            "GPS is not supported by this device."
-        );
+        alert("GPS is not supported.");
 
         return;
 
     }
 
-
-    const locationStatus =
-    document.getElementById(
-        "locationStatus"
-    );
-
-
-    if (locationStatus) {
-
-        locationStatus.innerHTML =
-        "🟡 Detecting your most accurate location...";
-
-    }
-
-
     navigator.geolocation.getCurrentPosition(
 
-        function(position) {
+        function(position){
 
-            const latitude =
-            position.coords.latitude;
+            document.getElementById("latitude").value=
+            position.coords.latitude.toFixed(7);
 
+            document.getElementById("longitude").value=
+            position.coords.longitude.toFixed(7);
 
-            const longitude =
-            position.coords.longitude;
+            const status=document.getElementById("locationStatus");
 
+            if(status){
 
-            const accuracy =
-            position.coords.accuracy;
-
-
-            const latitudeBox =
-            document.getElementById(
-                "latitude"
-            );
-
-
-            const longitudeBox =
-            document.getElementById(
-                "longitude"
-            );
-
-
-            if (latitudeBox) {
-
-                latitudeBox.value =
-                latitude.toFixed(7);
-
-            }
-
-
-            if (longitudeBox) {
-
-                longitudeBox.value =
-                longitude.toFixed(7);
-
-            }
-
-
-            if (locationStatus) {
-
-                locationStatus.innerHTML =
-
-                "✅ Location captured.<br>" +
-
-                "GPS accuracy: approximately " +
-
-                accuracy.toFixed(1) +
-
-                " meters.";
+                status.innerHTML="✅ Location Captured";
 
             }
 
         },
 
+        function(){
 
-        function(error) {
-
-            console.error(
-                "GPS Error:",
-                error
-            );
-
-
-            if (locationStatus) {
-
-                locationStatus.innerHTML =
-                "❌ Unable to get current location.";
-
-            }
-
-
-            alert(
-
-                "Unable to get your current location.\n\n" +
-
-                "Make sure Location/GPS is ON and allow location permission."
-
-            );
+            alert("Unable to get current location.");
 
         },
-
 
         {
 
-            enableHighAccuracy:
-            true,
+            enableHighAccuracy:true,
 
-            timeout:
-            30000,
+            timeout:30000,
 
-            maximumAge:
-            0
+            maximumAge:0
 
         }
 
@@ -434,295 +197,63 @@ function getCurrentLocation() {
 // SAVE SETTINGS
 // ======================================================
 
-async function saveSettings() {
+async function saveSettings(){
 
-    const status =
-    document.getElementById(
-        "attendanceStatus"
-    ).value;
+    const settings={
 
+        action:"saveSettings",
 
-    const trainingDay =
-    document.getElementById(
-        "trainingDay"
-    ).value.trim();
+        status:document.getElementById("attendanceStatus").value,
 
+        trainingDay:document.getElementById("trainingDay").value,
 
-    const trainingTopic =
-    document.getElementById(
-        "trainingTopic"
-    ).value.trim();
+        trainingTopic:document.getElementById("trainingTopic").value,
 
+        latitude:document.getElementById("latitude").value,
 
-    const latitude =
-    document.getElementById(
-        "latitude"
-    ).value.trim();
+        longitude:document.getElementById("longitude").value,
 
+        radius:document.getElementById("radius").value,
 
-    const longitude =
-    document.getElementById(
-        "longitude"
-    ).value.trim();
+        startTime:document.getElementById("startTime").value,
 
-
-    const radius =
-    document.getElementById(
-        "radius"
-    ).value.trim();
-
-
-    const startTime =
-    document.getElementById(
-        "startTime"
-    ).value;
-
-
-    const endTime =
-    document.getElementById(
-        "endTime"
-    ).value;
-
-
-    // ==================================================
-    // VALIDATION
-    // ==================================================
-
-    if (!trainingDay) {
-
-        alert(
-            "❌ Please enter the Training Day."
-        );
-
-        return;
-
-    }
-
-
-    if (!trainingTopic) {
-
-        alert(
-            "❌ Please enter the Training Topic or Subject."
-        );
-
-        return;
-
-    }
-
-
-    if (
-        latitude === "" ||
-        longitude === ""
-    ) {
-
-        alert(
-            "❌ Please enter or capture the training location."
-        );
-
-        return;
-
-    }
-
-
-    const radiusNumber =
-    parseFloat(
-        radius
-    );
-
-
-    if (
-        isNaN(radiusNumber) ||
-        radiusNumber <= 0
-    ) {
-
-        alert(
-            "❌ Please enter a valid radius."
-        );
-
-        return;
-
-    }
-
-
-    if (
-        !startTime ||
-        !endTime
-    ) {
-
-        alert(
-            "❌ Please enter the attendance start and end time."
-        );
-
-        return;
-
-    }
-
-
-    // ==================================================
-    // CREATE SETTINGS
-    // ==================================================
-
-    const settings = {
-
-        action:
-        "saveSettings",
-
-        status:
-        status,
-
-        trainingDay:
-        trainingDay,
-
-        trainingTopic:
-        trainingTopic,
-
-        latitude:
-        latitude,
-
-        longitude:
-        longitude,
-
-        radius:
-        radiusNumber.toString(),
-
-        startTime:
-        startTime,
-
-        endTime:
-        endTime
+        endTime:document.getElementById("endTime").value
 
     };
 
+    try{
 
-    const locationStatus =
-    document.getElementById(
-        "locationStatus"
-    );
+        const response=await fetch(APPS_SCRIPT_URL,{
 
+            method:"POST",
 
-    if (locationStatus) {
+            headers:{
 
-        locationStatus.innerHTML =
-        "⏳ Saving settings...";
+                "Content-Type":"text/plain;charset=utf-8"
 
-    }
+            },
 
+            body:JSON.stringify(settings)
 
-    try {
+        });
 
-        const response =
-        await fetch(
+        const result=await response.json();
 
-            APPS_SCRIPT_URL,
+        if(result.success){
 
-            {
+            alert("Settings Saved Successfully.");
 
-                method:
-                "POST",
+        }else{
 
-                headers: {
-
-                    "Content-Type":
-                    "text/plain;charset=utf-8"
-
-                },
-
-                body:
-                JSON.stringify(
-                    settings
-                )
-
-            }
-
-        );
-
-
-        const result =
-        await response.json();
-
-
-        console.log(
-            "Save result:",
-            result
-        );
-
-
-        if (
-            result.success
-        ) {
-
-            localStorage.setItem(
-
-                "attendanceSettings",
-
-                JSON.stringify(
-                    settings
-                )
-
-            );
-
-
-            if (locationStatus) {
-
-                locationStatus.innerHTML =
-                "✅ Settings saved successfully.";
-
-            }
-
-
-            alert(
-
-                "✅ Attendance settings saved successfully!\n\n" +
-
-                "Training Day: " +
-
-                trainingDay +
-
-                "\nTopic: " +
-
-                trainingTopic
-
-            );
-
-        }
-
-        else {
-
-            throw new Error(
-
-                result.message ||
-
-                "Unable to save settings."
-
-            );
+            alert("Failed to Save Settings.");
 
         }
 
     }
 
-    catch(error) {
+    catch(error){
 
-        console.error(
-            "Save Error:",
-            error
-        );
-
-
-        if (locationStatus) {
-
-            locationStatus.innerHTML =
-            "❌ Failed to save settings.";
-
-        }
-
-
-        alert(
-
-            "❌ Failed to save settings.\n\n" +
-
-            error.message
-
-        );
+        alert("Unable to Save Settings.");
 
     }
 
@@ -730,10 +261,10 @@ async function saveSettings() {
 
 
 // ======================================================
-// OPEN MAIN ROTC TRAINING GOOGLE DRIVE FOLDER
+// OPEN GOOGLE DRIVE
 // ======================================================
 
-function openTrainingFiles() {
+function openTrainingFiles(){
 
     window.open(
 
@@ -750,39 +281,25 @@ function openTrainingFiles() {
 // LOGOUT
 // ======================================================
 
-function logoutAdmin() {
+function logoutAdmin(){
 
-    localStorage.removeItem(
-        "adminLoggedIn"
-    );
+    localStorage.removeItem("adminLoggedIn");
 
-
-    window.location.href =
-    "admin.html";
+    window.location.href="admin-login.html";
 
 }
 
 
 // ======================================================
-// PAGE LOAD
+// AUTO LOAD
 // ======================================================
 
-document.addEventListener(
+document.addEventListener("DOMContentLoaded",function(){
 
-    "DOMContentLoaded",
+    if(document.getElementById("attendanceStatus")){
 
-    function() {
-
-        if (
-            document.getElementById(
-                "attendanceStatus"
-            )
-        ) {
-
-            loadAdminSettings();
-
-        }
+        loadAdminSettings();
 
     }
 
-);
+});
