@@ -1,1 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Flight Leader Login</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+<div class="login-card">
+
+    <div class="logo-area">
+
+        <img src="images/school-logo.jpg" class="logo">
+
+        <img src="images/rotc-logo.png" class="logo">
+
+    </div>
+
+    <h1>FLIGHT LEADER LOGIN</h1>
+
+    <p>Philippine Air Force ROTC</p>
+
+    <input
+        type="text"
+        id="flightUsername"
+        placeholder="Flight Name">
+
+    <input
+        type="password"
+        id="flightPassword"
+        placeholder="Password">
+
+    <button
+        class="btn"
+        onclick="loginFlightLeader()">
+
+        LOGIN
+
+    </button>
+
+    <a
+        href="index.html"
+        class="backBtn">
+
+        ← Back
+
+    </a>
+
+    <p id="error"></p>
+
+</div>
+
+<script src="js/flight-login.js"></script>
+
+</body>
+</html>
