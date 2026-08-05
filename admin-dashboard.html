@@ -4,235 +4,127 @@
 <head>
 
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
->
+<title>FBC ROTC Command Center</title>
 
-<title>ROTC Admin Dashboard</title>
-
-<link
-rel="stylesheet"
-href="css/style.css"
->
+<link rel="stylesheet" href="css/style.css">
 
 </head>
 
-
 <body>
-
 
 <div class="container">
 
+    <div class="logo-area">
 
-<h1>ADMIN CONTROL PANEL</h1>
+        <img src="images/school-logo.jpg" class="logo">
 
+        <img src="images/rotc-logo.png" class="logo">
 
-<hr>
+    </div>
 
+    <h1>FULL BRIGHT COLLEGE</h1>
 
-<h2>Attendance Settings</h2>
+    <h2>ROTC COMMAND CENTER</h2>
 
+    <p>Philippine Air Force Reserve Command</p>
 
-<label for="attendanceStatus">
-Attendance Status
-</label>
+    <hr>
 
+    <h2>Attendance Control</h2>
 
-<select id="attendanceStatus">
+    <label>Attendance Status</label>
 
-<option value="OPEN">
-OPEN
-</option>
+    <select id="attendanceStatus">
 
-<option value="CLOSED">
-CLOSED
-</option>
+        <option value="OPEN">🟢 OPEN</option>
 
-</select>
+        <option value="CLOSED">🔴 CLOSED</option>
 
+    </select>
 
-<br><br>
+    <br><br>
 
+    <label>Training Day</label>
 
-<label for="trainingDay">
-Training Day
-</label>
+    <input
+    type="text"
+    id="trainingDay"
+    placeholder="Example: Training Day 1">
 
+    <br><br>
 
-<input
-type="text"
-id="trainingDay"
-placeholder="Example: Training Day 1"
->
+    <label>Training Topic</label>
 
+    <input
+    type="text"
+    id="trainingTopic"
+    placeholder="Example: Military Courtesy">
 
-<br><br>
+    <br><br>
 
+    <label>Attendance Start Time</label>
 
-<label for="trainingTopic">
-Training Topic / Subject
-</label>
+    <input
+    type="time"
+    id="startTime">
 
+    <br><br>
 
-<input
-type="text"
-id="trainingTopic"
-placeholder="Example: Basic Military Discipline and Formation"
->
+    <label>Attendance End Time</label>
 
+    <input
+    type="time"
+    id="endTime">
 
-<br><br>
+    <br><br>
 
+    <button
+    class="btn"
+    onclick="saveSettings()">
 
-<label for="latitude">
-Training Ground Latitude
-</label>
+        💾 SAVE SETTINGS
 
+    </button>
 
-<input
-type="text"
-id="latitude"
-placeholder="Example: 14.1234567"
->
+    <hr>
 
+    <h2>Training Files</h2>
 
-<br><br>
+    <button
+    class="btn"
+    onclick="openTrainingFiles()">
 
+        📁 OPEN ROTC TRAINING FILES
 
-<label for="longitude">
-Training Ground Longitude
-</label>
+    </button>
 
+    <hr>
 
-<input
-type="text"
-id="longitude"
-placeholder="Example: 120.1234567"
->
+    <h2>Flight Leader Module</h2>
 
+    <button
+    class="btn"
+    onclick="window.location.href='flight-login.html'">
 
-<br><br>
+        👥 FLIGHT LEADER LOGIN
 
+    </button>
 
-<button
-class="btn"
-type="button"
-onclick="getCurrentLocation()"
->
+    <hr>
 
-📍 USE MY CURRENT LOCATION
+    <button
+    class="btn logoutBtn"
+    onclick="logoutAdmin()">
 
-</button>
+        🚪 LOGOUT
 
-
-<p id="locationStatus"></p>
-
-
-<br>
-
-
-<label for="radius">
-Allowed Radius (Meters)
-</label>
-
-
-<input
-type="number"
-id="radius"
-value="200"
-min="1"
->
-
-
-<br><br>
-
-
-<label for="startTime">
-Attendance Start Time
-</label>
-
-
-<input
-type="time"
-id="startTime"
-value="07:00"
->
-
-
-<br><br>
-
-
-<label for="endTime">
-Attendance End Time
-</label>
-
-
-<input
-type="time"
-id="endTime"
-value="12:00"
->
-
-
-<br><br>
-
-
-<button
-class="btn"
-type="button"
-onclick="saveSettings()"
->
-
-SAVE SETTINGS
-
-</button>
-
-
-<hr>
-
-
-<h2>ROTC Training Files</h2>
-
-
-<p>
-
-Open the main Google Drive folder containing all Training Day folders and attendance spreadsheets.
-
-</p>
-
-
-<button
-class="btn"
-type="button"
-onclick="openTrainingFiles()"
->
-
-📁 OPEN ROTC TRAINING FILES
-
-</button>
-
-
-<hr>
-
-
-<button
-class="btn logout-btn"
-type="button"
-onclick="logoutAdmin()"
->
-
-LOGOUT
-
-</button>
-
+    </button>
 
 </div>
 
-
 <script src="js/admin-login.js"></script>
-
 
 </body>
 
