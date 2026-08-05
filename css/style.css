@@ -21,12 +21,16 @@ body{
 
     background-size:cover;
     background-position:center;
+    background-attachment:fixed;
 
     display:flex;
     justify-content:center;
-    align-items:center;
+    align-items:flex-start;
 
-    overflow:hidden;
+    overflow-y:auto;
+    overflow-x:hidden;
+
+    padding:20px;
 
 }
 
@@ -291,6 +295,8 @@ padding:16px;
 
     box-shadow:0 0 40px rgba(0,0,0,.45);
 
+    margin:20px auto;
+
 }
 
 /* ========================================= */
@@ -431,5 +437,87 @@ hr{
     margin:25px 0;
 
     border:1px solid rgba(255,255,255,.15);
+
+}
+
+/* =========================================
+   MOBILE RESPONSIVE
+========================================= */
+
+@media screen and (max-width:768px){
+
+body{
+
+    padding:10px;
+    align-items:flex-start;
+
+}
+
+.container{
+
+    width:100%;
+    padding:18px;
+    margin:10px auto;
+
+}
+
+.landing-card{
+
+    width:100%;
+    padding:25px;
+
+}
+
+.logo-area,
+.logo-group{
+
+    gap:15px;
+    flex-wrap:wrap;
+
+}
+
+.logo,
+.landing-logo{
+
+    width:70px;
+    height:70px;
+
+}
+
+.container h1,
+h1{
+
+    font-size:24px;
+
+}
+
+.container h2,
+h2{
+
+    font-size:18px;
+
+}
+
+.subtitle{
+
+    font-size:15px;
+
+}
+
+input,
+select{
+
+    font-size:16px;
+    padding:12px;
+
+}
+
+.btn,
+.landing-btn{
+
+    padding:14px;
+    font-size:16px;
+
+}
 
 }
