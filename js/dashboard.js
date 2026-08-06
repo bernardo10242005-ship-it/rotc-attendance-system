@@ -1,325 +1,134 @@
 // ======================================================
+// FULL BRIGHT COLLEGE
 // ROTC ATTENDANCE MANAGEMENT SYSTEM
 // STUDENT DASHBOARD
+// VERSION 2
 // ======================================================
 
-
-// ======================================================
-// GET STUDENT DATA FROM LOCAL STORAGE
-// ======================================================
-
-const studentJSON =
-    localStorage.getItem(
-        "student"
-    );
-
-
-// ======================================================
-// CHECK IF STUDENT IS LOGGED IN
-// ======================================================
-
-if (!studentJSON) {
-
-    window.location.href =
-        "login.html";
-
-}
-
-
-// ======================================================
-// CONVERT JSON INTO STUDENT OBJECT
-// ======================================================
+// =============================
+// Load Student
+// =============================
 
 const student =
-    JSON.parse(
-        studentJSON
-    );
+JSON.parse(localStorage.getItem("student"));
 
+if(!student){
 
-// ======================================================
-// DISPLAY STUDENT NAME
-// ======================================================
-
-const studentNameElement =
-    document.getElementById(
-        "studentName"
-    );
-
-
-if (studentNameElement) {
-
-    studentNameElement.textContent =
-        student.name ||
-        "";
+    window.location.href="login.html";
 
 }
 
+// =============================
+// Display Student Information
+// =============================
 
-// ======================================================
-// DISPLAY STUDENT NUMBER
-// ======================================================
+document.getElementById("studentName").textContent =
+student.name || "";
 
-const studentIDElement =
-    document.getElementById(
-        "studentID"
-    );
+document.getElementById("studentID").textContent =
+student.studentNumber || "";
 
+document.getElementById("course").textContent =
+student.course || "";
 
-if (studentIDElement) {
+document.getElementById("year").textContent =
+student.year || "";
 
-    studentIDElement.textContent =
-        student.studentNumber ||
-        "";
+document.getElementById("flight").textContent =
+student.flight || "";
 
-}
+document.getElementById("studentType").textContent =
+student.studentType || "REGULAR";
 
+document.getElementById("merits").textContent =
+student.merits || "0";
 
-// ======================================================
-// DISPLAY COURSE
-// ======================================================
-
-const courseElement =
-    document.getElementById(
-        "course"
-    );
-
-
-if (courseElement) {
-
-    courseElement.textContent =
-        student.course ||
-        "";
-
-}
+document.getElementById("demerits").textContent =
+student.demerits || "0";
 
 
-// ======================================================
-// DISPLAY YEAR LEVEL
-// ======================================================
+// =============================
+// Clock
+// =============================
 
-const yearElement =
-    document.getElementById(
-        "year"
-    );
+function updateClock(){
 
+    const now=new Date();
 
-if (yearElement) {
+    document.getElementById("today").textContent=
+    now.toLocaleDateString("en-PH",{
 
-    yearElement.textContent =
-        student.year ||
-        "";
+        weekday:"long",
+        year:"numeric",
+        month:"long",
+        day:"numeric"
+
+    });
+
+    document.getElementById("clock").textContent=
+    now.toLocaleTimeString("en-PH");
 
 }
-
-
-// ======================================================
-// DISPLAY FLIGHT
-// ======================================================
-
-const flightElement =
-    document.getElementById(
-        "flight"
-    );
-
-
-if (flightElement) {
-
-    flightElement.textContent =
-        student.flight ||
-        "";
-
-}
-
-
-// ======================================================
-// DISPLAY STUDENT TYPE
-// ======================================================
-
-const studentTypeElement =
-    document.getElementById(
-        "studentType"
-    );
-
-
-if (studentTypeElement) {
-
-    studentTypeElement.textContent =
-        student.studentType ||
-        "";
-
-}
-
-
-// ======================================================
-// DISPLAY MERITS
-// ======================================================
-
-const meritsElement =
-    document.getElementById(
-        "merits"
-    );
-
-
-if (meritsElement) {
-
-    meritsElement.textContent =
-        student.merits !== undefined &&
-        student.merits !== null &&
-        student.merits !== ""
-            ? student.merits
-            : "0";
-
-}
-
-
-// ======================================================
-// DISPLAY DEMERITS
-// ======================================================
-
-const demeritsElement =
-    document.getElementById(
-        "demerits"
-    );
-
-
-if (demeritsElement) {
-
-    demeritsElement.textContent =
-        student.demerits !== undefined &&
-        student.demerits !== null &&
-        student.demerits !== ""
-            ? student.demerits
-            : "0";
-
-}
-
-
-// ======================================================
-// DEBUG INFORMATION
-// ======================================================
-
-console.log(
-    "Logged-in Student:",
-    student
-);
-
-
-console.log(
-    "Student Merits:",
-    student.merits
-);
-
-
-console.log(
-    "Student Demerits:",
-    student.demerits
-);
-
-
-// ======================================================
-// DISPLAY CURRENT DATE AND TIME
-// ======================================================
-
-function updateClock() {
-
-
-    const now =
-        new Date();
-
-
-    // ==================================================
-    // CURRENT DATE
-    // ==================================================
-
-    const todayElement =
-        document.getElementById(
-            "today"
-        );
-
-
-    if (todayElement) {
-
-        todayElement.textContent =
-            now.toLocaleDateString(
-
-                "en-PH",
-
-                {
-
-                    weekday:
-                        "long",
-
-                    year:
-                        "numeric",
-
-                    month:
-                        "long",
-
-                    day:
-                        "numeric"
-
-                }
-
-            );
-
-    }
-
-
-    // ==================================================
-    // CURRENT TIME
-    // ==================================================
-
-    const clockElement =
-        document.getElementById(
-            "clock"
-        );
-
-
-    if (clockElement) {
-
-        clockElement.textContent =
-            now.toLocaleTimeString(
-                "en-PH"
-            );
-
-    }
-
-}
-
-
-// ======================================================
-// START CLOCK
-// ======================================================
 
 updateClock();
 
-
-setInterval(
-
-    updateClock,
-
-    1000
-
-);
+setInterval(updateClock,1000);
 
 
-// ======================================================
-// LOGOUT
-// ======================================================
+// =============================
+// Attendance Status
+// =============================
 
-function logout() {
+function checkAttendanceStatus(){
+
+    const today=
+    new Date().toLocaleDateString("en-PH");
+
+    const attendance=
+    JSON.parse(localStorage.getItem("attendanceRecord"));
+
+    const statusElement=
+    document.getElementById("status");
+
+    if(
+
+        attendance &&
+
+        attendance.studentNumber===student.studentNumber &&
+
+        attendance.date===today
+
+    ){
+
+        statusElement.innerHTML=
+        "✅ Attendance Submitted";
+
+        statusElement.style.color="lime";
+
+    }
+
+    else{
+
+        statusElement.innerHTML=
+        "Not Yet Submitted";
+
+        statusElement.style.color="orange";
+
+    }
+
+}
+
+checkAttendanceStatus();
 
 
-    // Remove student information
+// =============================
+// Logout
+// =============================
 
-    localStorage.removeItem(
-        "student"
-    );
+function logout(){
 
+    localStorage.removeItem("student");
 
-    // Return to login/home page
-
-    window.location.href =
-        "index.html";
+    window.location.href="index.html";
 
 }
