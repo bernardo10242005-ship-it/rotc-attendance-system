@@ -1,11 +1,20 @@
 // ======================================================
 // FULL BRIGHT COLLEGE
 // ROTC ATTENDANCE MANAGEMENT SYSTEM
-// ADMIN LOGIN JS
+// ADMIN LOGIN & COMMAND CENTER
+// VERSION 3
+//
+// FEATURES
+// - No GPS
+// - No Camera
+// - Save Attendance Settings
+// - Load Attendance Settings
+// - Open Training Files
+// - Admin Login
 // ======================================================
 
 // ======================================================
-// GOOGLE APPS SCRIPT WEB APP URL
+// GOOGLE APPS SCRIPT WEB APP
 // ======================================================
 
 const APPS_SCRIPT_URL =
@@ -18,7 +27,8 @@ const APPS_SCRIPT_URL =
 
 function togglePassword(){
 
-    const pass=document.getElementById("password");
+    const pass =
+    document.getElementById("password");
 
     if(!pass) return;
 
@@ -26,7 +36,9 @@ function togglePassword(){
 
         pass.type="text";
 
-    }else{
+    }
+
+    else{
 
         pass.type="password";
 
@@ -41,24 +53,42 @@ function togglePassword(){
 
 function loginAdmin(){
 
-    const username=document.getElementById("username").value.trim();
-    const password=document.getElementById("password").value.trim();
-    const error=document.getElementById("error");
+    const username =
+    document.getElementById("username").value.trim();
 
-    if(error) error.textContent="";
+    const password =
+    document.getElementById("password").value.trim();
 
-    // ===== YOUR ADMIN ACCOUNT =====
+    const error =
+    document.getElementById("error");
+
+    if(error){
+
+        error.textContent="";
+
+    }
 
     if(
 
-        username.toUpperCase()==="SIR IAN" &&
+        username.toUpperCase()==="SIR IAN"
+
+        &&
+
         password==="BERNS10242005@"
 
     ){
 
-        localStorage.setItem("adminLoggedIn","true");
+        localStorage.setItem(
 
-        window.location.href="admin-dashboard.html";
+            "adminLoggedIn",
+
+            "true"
+
+        );
+
+        window.location.href=
+
+        "admin-dashboard.html";
 
     }
 
@@ -66,11 +96,19 @@ function loginAdmin(){
 
         if(error){
 
-            error.textContent="Invalid Username or Password.";
+            error.textContent=
 
-        }else{
+            "Invalid Username or Password.";
 
-            alert("Invalid Username or Password.");
+        }
+
+        else{
+
+            alert(
+
+                "Invalid Username or Password."
+
+            );
 
         }
 
@@ -80,16 +118,22 @@ function loginAdmin(){
 
 
 // ======================================================
-// LOAD ADMIN SETTINGS
+// LOAD SETTINGS
 // ======================================================
 
 async function loadAdminSettings(){
 
     try{
 
-        const response=await fetch(
+        const response =
 
-            APPS_SCRIPT_URL+"?t="+Date.now(),
+        await fetch(
+
+            APPS_SCRIPT_URL +
+
+            "?t=" +
+
+            Date.now(),
 
             {
 
@@ -101,31 +145,39 @@ async function loadAdminSettings(){
 
         );
 
-        const settings=await response.json();
+        const settings =
 
-        if(document.getElementById("attendanceStatus"))
-        document.getElementById("attendanceStatus").value=settings.status||"CLOSED";
+        await response.json();
 
-        if(document.getElementById("trainingDay"))
-        document.getElementById("trainingDay").value=settings.trainingDay||"";
+        console.log(settings);
 
-        if(document.getElementById("trainingTopic"))
-        document.getElementById("trainingTopic").value=settings.trainingTopic||"";
+        document.getElementById("attendanceStatus").value =
 
-        if(document.getElementById("latitude"))
-        document.getElementById("latitude").value=settings.latitude||"";
+        settings.status || "CLOSED";
 
-        if(document.getElementById("longitude"))
-        document.getElementById("longitude").value=settings.longitude||"";
+        document.getElementById("trainingDay").value =
 
-        if(document.getElementById("radius"))
-        document.getElementById("radius").value=settings.radius||"200";
+        settings.trainingDay || "";
 
-        if(document.getElementById("startTime"))
-        document.getElementById("startTime").value=settings.startTime||"07:00";
+        document.getElementById("trainingTopic").value =
 
-        if(document.getElementById("endTime"))
-        document.getElementById("endTime").value=settings.endTime||"12:00";
+        settings.trainingTopic ||
+
+        settings.topic ||
+
+        "";
+
+        document.getElementById("startTime").value =
+
+        settings.startTime ||
+
+        "07:00";
+
+        document.getElementById("endTime").value =
+
+        settings.endTime ||
+
+        "12:00";
 
     }
 
@@ -133,65 +185,15 @@ async function loadAdminSettings(){
 
         console.error(error);
 
-    }
+        alert(
 
-}
+            "Unable to load admin settings."
 
-
-// ======================================================
-// GET GPS
-// ======================================================
-
-function getCurrentLocation(){
-
-    if(!navigator.geolocation){
-
-        alert("GPS is not supported.");
-
-        return;
+        );
 
     }
 
-    navigator.geolocation.getCurrentPosition(
-
-        function(position){
-
-            document.getElementById("latitude").value=
-            position.coords.latitude.toFixed(7);
-
-            document.getElementById("longitude").value=
-            position.coords.longitude.toFixed(7);
-
-            const status=document.getElementById("locationStatus");
-
-            if(status){
-
-                status.innerHTML="✅ Location Captured";
-
-            }
-
-        },
-
-        function(){
-
-            alert("Unable to get current location.");
-
-        },
-
-        {
-
-            enableHighAccuracy:true,
-
-            timeout:30000,
-
-            maximumAge:0
-
-        }
-
-    );
-
 }
-
 
 // ======================================================
 // SAVE SETTINGS
@@ -203,49 +205,70 @@ async function saveSettings(){
 
         action:"saveSettings",
 
-        status:document.getElementById("attendanceStatus").value,
+        status:
+        document.getElementById("attendanceStatus").value,
 
-        trainingDay:document.getElementById("trainingDay").value,
+        trainingDay:
+        document.getElementById("trainingDay").value.trim(),
 
-        trainingTopic:document.getElementById("trainingTopic").value,
+        trainingTopic:
+        document.getElementById("trainingTopic").value.trim(),
 
-        latitude:document.getElementById("latitude").value,
+        startTime:
+        document.getElementById("startTime").value,
 
-        longitude:document.getElementById("longitude").value,
-
-        radius:document.getElementById("radius").value,
-
-        startTime:document.getElementById("startTime").value,
-
-        endTime:document.getElementById("endTime").value
+        endTime:
+        document.getElementById("endTime").value
 
     };
 
+    console.log("Saving Settings...",settings);
+
     try{
 
-        const response=await fetch(APPS_SCRIPT_URL,{
+        const response=
 
-            method:"POST",
+        await fetch(
 
-            headers:{
+            APPS_SCRIPT_URL,
 
-                "Content-Type":"text/plain;charset=utf-8"
+            {
 
-            },
+                method:"POST",
 
-            body:JSON.stringify(settings)
+                headers:{
 
-        });
+                    "Content-Type":"text/plain;charset=utf-8"
 
-        const result=await response.json();
+                },
+
+                body:JSON.stringify(settings)
+
+            }
+
+        );
+
+        const result=
+
+        await response.json();
+
+        console.log(result);
 
         if(result.success){
 
-            alert("Settings Saved Successfully.");
+            alert("✅ Settings Saved Successfully.");
 
-        }else{
+        }
 
-            alert("Failed to Save Settings.");
+        else{
+
+            alert(
+
+                result.message ||
+
+                "Failed to save settings."
+
+            );
 
         }
 
@@ -253,7 +276,13 @@ async function saveSettings(){
 
     catch(error){
 
-        alert("Unable to Save Settings.");
+        console.error(error);
+
+        alert(
+
+            "Unable to connect to the server."
+
+        );
 
     }
 
@@ -261,7 +290,7 @@ async function saveSettings(){
 
 
 // ======================================================
-// OPEN GOOGLE DRIVE
+// OPEN TRAINING FILES
 // ======================================================
 
 function openTrainingFiles(){
@@ -283,23 +312,43 @@ function openTrainingFiles(){
 
 function logoutAdmin(){
 
-    localStorage.removeItem("adminLoggedIn");
+    localStorage.removeItem(
 
-    window.location.href="admin-login.html";
+        "adminLoggedIn"
+
+    );
+
+    window.location.href=
+
+    "admin-login.html";
 
 }
 
 
 // ======================================================
-// AUTO LOAD
+// AUTO LOAD SETTINGS
 // ======================================================
 
-document.addEventListener("DOMContentLoaded",function(){
+document.addEventListener(
 
-    if(document.getElementById("attendanceStatus")){
+    "DOMContentLoaded",
 
-        loadAdminSettings();
+    function(){
+
+        if(
+
+            document.getElementById(
+
+                "attendanceStatus"
+
+            )
+
+        ){
+
+            loadAdminSettings();
+
+        }
 
     }
 
-});
+);
