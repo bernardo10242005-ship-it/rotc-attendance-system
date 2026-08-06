@@ -86,3 +86,164 @@ async function loadAttendance(){
     }
 
 }
+
+// ======================================================
+// DISPLAY ATTENDANCE TABLE
+// ======================================================
+
+function displayAttendance(records){
+
+    const tbody =
+    document.querySelector("#attendanceTable tbody");
+
+    tbody.innerHTML = "";
+
+    if(records.length===0){
+
+        tbody.innerHTML=
+
+        `
+        <tr>
+
+            <td colspan="5">
+
+                No attendance records found.
+
+            </td>
+
+        </tr>
+        `;
+
+        return;
+
+    }
+
+    records.forEach(record=>{
+
+        const row=document.createElement("tr");
+
+        row.innerHTML=`
+
+            <td>${record.studentNumber}</td>
+
+            <td>${record.name}</td>
+
+            <td>${record.course}</td>
+
+            <td>${record.status}</td>
+
+            <td>${record.time}</td>
+
+        `;
+
+        tbody.appendChild(row);
+
+    });
+
+}
+
+
+// ======================================================
+// SEARCH FUNCTION
+// ======================================================
+
+document
+.getElementById("searchBox")
+.addEventListener(
+
+    "keyup",
+
+    function(){
+
+        const keyword=
+
+        this.value
+
+        .toLowerCase()
+
+        .trim();
+
+        const filtered=
+
+        attendanceData.filter(record=>{
+
+            return(
+
+                record.studentNumber
+                .toLowerCase()
+                .includes(keyword)
+
+                ||
+
+                record.name
+                .toLowerCase()
+                .includes(keyword)
+
+            );
+
+        });
+
+        displayAttendance(filtered);
+
+    }
+
+);
+
+// ======================================================
+// REFRESH ATTENDANCE
+// ======================================================
+
+function refreshAttendance(){
+
+    loadAttendance();
+
+}
+
+
+// ======================================================
+// BACK TO DASHBOARD
+// ======================================================
+
+function backToDashboard(){
+
+    window.location.href =
+    "flight-dashboard.html";
+
+}
+
+
+// ======================================================
+// AUTO REFRESH EVERY 10 SECONDS
+// ======================================================
+
+setInterval(
+
+    function(){
+
+        loadAttendance();
+
+    },
+
+    10000
+
+);
+
+
+// ======================================================
+// LOGOUT FLIGHT LEADER
+// ======================================================
+
+function logoutFlightLeader(){
+
+    localStorage.removeItem(
+        "flightLeader"
+    );
+
+    localStorage.removeItem(
+        "selectedTrainingDay"
+    );
+
+    window.location.href =
+    "index.html";
+
+}
