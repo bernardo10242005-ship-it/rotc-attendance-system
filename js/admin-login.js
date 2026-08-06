@@ -198,59 +198,39 @@ async function loadAdminSettings(){
 // ======================================================
 // SAVE SETTINGS
 // ======================================================
-
 async function saveSettings(){
 
     const settings={
 
         action:"saveSettings",
 
-        status:
-        document.getElementById("attendanceStatus").value,
+        status:document.getElementById("attendanceStatus").value,
 
-        trainingDay:
-        document.getElementById("trainingDay").value.trim(),
+        trainingDay:document.getElementById("trainingDay").value,
 
-        trainingTopic:
-        document.getElementById("trainingTopic").value.trim(),
+        trainingTopic:document.getElementById("trainingTopic").value,
 
-        startTime:
-        document.getElementById("startTime").value,
+        startTime:document.getElementById("startTime").value,
 
-        endTime:
-        document.getElementById("endTime").value
+        endTime:document.getElementById("endTime").value
 
     };
 
-    console.log("Saving Settings...",settings);
-
     try{
 
-        const response=
+        const response=await fetch(APPS_SCRIPT_URL,{
 
-        await fetch(
+            method:"POST",
 
-            APPS_SCRIPT_URL,
+            headers:{
+                "Content-Type":"text/plain;charset=utf-8"
+            },
 
-            {
+            body:JSON.stringify(settings)
 
-                method:"POST",
+        });
 
-                headers:{
-
-                    "Content-Type":"text/plain;charset=utf-8"
-
-                },
-
-                body:JSON.stringify(settings)
-
-            }
-
-        );
-
-        const result=
-
-        await response.json();
+        const result=await response.json();
 
         console.log(result);
 
@@ -258,17 +238,9 @@ async function saveSettings(){
 
             alert("✅ Settings Saved Successfully.");
 
-        }
+        }else{
 
-        else{
-
-            alert(
-
-                result.message ||
-
-                "Failed to save settings."
-
-            );
+            alert(result.message || "Failed to save settings.");
 
         }
 
@@ -278,11 +250,7 @@ async function saveSettings(){
 
         console.error(error);
 
-        alert(
-
-            "Unable to connect to the server."
-
-        );
+        alert("Unable to save settings.");
 
     }
 
