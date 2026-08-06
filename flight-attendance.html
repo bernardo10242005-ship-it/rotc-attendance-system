@@ -1,1 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Flight Attendance</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>PHILIPPINE AIR FORCE ROTC</h1>
+
+<h2>FLIGHT ATTENDANCE</h2>
+
+<hr>
+
+<h3 id="flightTitle"></h3>
+
+<p id="trainingDayTitle"></p>
+
+<hr>
+
+<input
+type="text"
+id="searchBox"
+placeholder="Search Student Name or Student Number">
+
+<br><br>
+
+<table id="attendanceTable" border="1" width="100%">
+
+<thead>
+
+<tr>
+
+<th>Student No.</th>
+
+<th>Name</th>
+
+<th>Course</th>
+
+<th>Status</th>
+
+<th>Time</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+</tbody>
+
+</table>
+
+<br>
+
+<button
+class="btn"
+onclick="refreshAttendance()">
+
+🔄 Refresh
+
+</button>
+
+<br><br>
+
+<button
+class="btn logoutBtn"
+onclick="goBack()">
+
+⬅ Back
+
+</button>
+
+</div>
+
+<script src="js/flight-attendance.js"></script>
+
+</body>
+
+</html>
