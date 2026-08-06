@@ -4,11 +4,14 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>ROTC Attendance Management System</title>
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="css/style.css">
+<title>ROTC Attendance</title>
+
+<link rel="stylesheet"
+href="css/style.css">
 
 </head>
 
@@ -16,15 +19,9 @@
 
 <div class="container">
 
-    <div class="header">
+    <h1>FULL BRIGHT COLLEGE</h1>
 
-        <h1>FULL BRIGHT COLLEGE</h1>
-
-        <h2>ROTC ATTENDANCE MANAGEMENT SYSTEM</h2>
-
-        <p>Student Attendance Form</p>
-
-    </div>
+    <h2>ROTC ATTENDANCE MANAGEMENT SYSTEM</h2>
 
     <hr>
 
@@ -60,64 +57,51 @@
 
     <select id="status">
 
-        <option value="Present">Present</option>
+        <option value="Present">
+            Present
+        </option>
 
-        <option value="Late">Late</option>
+        <option value="Late">
+            Late
+        </option>
 
-        <option value="Excused">Excused</option>
+        <option value="Excused">
+            Excused
+        </option>
 
     </select>
 
     <hr>
 
-    <h3>Selfie Verification</h3>
-
-    <p>Please capture a clear selfie before submitting your attendance.</p>
-
-    <video
-    id="video"
-    width="320"
-    height="240"
-    autoplay
-    playsinline>
-    </video>
-
-    <br><br>
-
-    <button
-    class="btn"
-    onclick="takePhoto()">
-
-        📷 CAPTURE PHOTO
-
-    </button>
-
-    <br><br>
-
-    <canvas
-    id="photo"
-    width="320"
-    height="240">
-    </canvas>
-
-    <hr>
-
     <h3>Digital Signature</h3>
 
-    <p>Please sign inside the box.</p>
+    <p>
+        Please sign inside the box before submitting your attendance.
+    </p>
 
     <canvas
-    id="signature"
-    width="320"
-    height="160"
-    style="border:2px solid black; background:white; touch-action:none;">
+
+        id="signature"
+
+        width="320"
+
+        height="160"
+
+        style="
+        border:2px solid black;
+        background:white;
+        touch-action:none;
+        ">
+
     </canvas>
 
     <br><br>
 
     <button
-    class="btn"
-    onclick="clearSignature()">
+
+        class="btn"
+
+        onclick="clearSignature()">
 
         CLEAR SIGNATURE
 
@@ -126,8 +110,10 @@
     <hr>
 
     <button
-    class="btn"
-    onclick="submitAttendance()">
+
+        class="btn"
+
+        onclick="submitAttendance()">
 
         ✅ SUBMIT ATTENDANCE
 
@@ -136,8 +122,10 @@
     <br><br>
 
     <a
-    href="dashboard.html"
-    class="btn">
+
+        href="dashboard.html"
+
+        class="btn">
 
         ⬅ BACK TO DASHBOARD
 
