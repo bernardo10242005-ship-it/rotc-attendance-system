@@ -200,6 +200,8 @@ function refreshAttendance(){
 }
 
 
+
+
 // ======================================================
 // BACK TO DASHBOARD
 // ======================================================
@@ -247,3 +249,198 @@ function logoutFlightLeader(){
     "index.html";
 
 }
+
+
+// ======================================================
+// LOAD ATTENDANCE
+// ======================================================
+
+async function loadAttendance(){
+
+    attendanceBody.innerHTML =
+    "<tr><td colspan='9'>Loading attendance...</td></tr>";
+
+    try{
+
+        const response =
+        await fetch(
+
+            APPS_SCRIPT_URL +
+            "?action=getAttendance" +
+            "&trainingDay=" +
+            encodeURIComponent(trainingDay) +
+            "&flight=" +
+            encodeURIComponent(flight)
+
+        );
+
+        const result =
+        await response.json();
+
+        if(!result.success){
+
+            attendanceBody.innerHTML =
+            "<tr><td colspan='9'>No attendance records found.</td></tr>";
+
+            return;
+
+        }
+
+        attendanceBody.innerHTML = "";
+
+        result.records.forEach(record=>{
+
+            const row =
+            document.createElement("tr");
+
+            row.innerHTML =
+
+            `
+            <td>${record.studentNumber}</td>
+            <td>${record.name}</td>
+            <td>${record.course}</td>
+            <td>${record.date}</td>
+            <td>${record.time}</td>
+            <td>${record.status}</td>
+
+            <td>
+
+                ${
+                    record.signature
+
+                    ?
+
+                    `<a href="${record.signature}" target="_blank">
+                    View Signature
+                    </a>`
+
+                    :
+
+                    "No Signature"
+
+                }
+
+            </td>
+
+            <td>
+
+                <button
+                class="btn"
+                onclick="deleteAttendance('${record.studentNumber}')">
+
+                DELETE
+
+                </button>
+
+            </td>
+
+            `;
+
+            attendanceBody.appendChild(row);
+
+        });
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        attendanceBody.innerHTML =
+        "<tr><td colspan='9'>Unable to load attendance.</td></tr>";
+
+    }
+
+}
+
+
+// ======================================================
+// DELETE ATTENDANCE
+// ======================================================
+
+async function deleteAttendance(studentNumber){
+
+    if(
+
+        !confirm(
+
+            "Delete this attendance record?"
+
+        )
+
+    ){
+
+        return;
+
+    }
+
+    try{
+
+        const response =
+        await fetch(
+
+            APPS_SCRIPT_URL,
+
+            {
+
+                method:"POST",
+
+                headers:{
+
+                    "Content-Type":"text/plain;charset=utf-8"
+
+                },
+
+                body:JSON.stringify({
+
+                    action:"deleteAttendance",
+
+                    trainingDay:trainingDay,
+
+                    flight:flight,
+
+                    studentNumber:studentNumber
+
+                })
+
+            }
+
+        );
+
+        const result =
+        await response.json();
+
+        alert(result.message);
+
+        loadAttendance();
+
+    }
+
+    catch(error){
+
+        alert("Unable to delete attendance.");
+
+    }
+
+}
+
+
+// ======================================================
+// LOGOUT
+// ======================================================
+
+function logoutFlightLeader(){
+
+    localStorage.removeItem("flightLeader");
+
+    window.location.href =
+    "flight-login.html";
+
+}
+
+
+// ======================================================
+// INITIAL LOAD
+// ======================================================
+
+loadAttendance();
