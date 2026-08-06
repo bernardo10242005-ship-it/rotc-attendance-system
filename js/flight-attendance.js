@@ -1,8 +1,8 @@
 // ======================================================
 // FULL BRIGHT COLLEGE
 // ROTC ATTENDANCE MANAGEMENT SYSTEM
-// FLIGHT ATTENDANCE
-// PART 1
+// FLIGHT LEADER ATTENDANCE
+// CLEAN VERSION
 // ======================================================
 
 const APPS_SCRIPT_URL =
@@ -20,13 +20,25 @@ if(!leader){
 
 }
 
+if(!trainingDay){
+
+    window.location.href="flight-dashboard.html";
+
+}
+
 document.getElementById("flightTitle").innerHTML =
 leader.flight;
 
 document.getElementById("trainingDayTitle").innerHTML =
 trainingDay;
 
-let attendanceData = [];
+const attendanceBody =
+document.querySelector("#attendanceTable tbody");
+
+const searchBox =
+document.getElementById("searchBox");
+
+let attendanceRecords = [];
 
 window.onload=function(){
 
@@ -35,6 +47,20 @@ window.onload=function(){
 };
 
 async function loadAttendance(){
+
+    attendanceBody.innerHTML =
+
+    `
+    <tr>
+
+        <td colspan="8">
+
+            Loading attendance...
+
+        </td>
+
+    </tr>
+    `;
 
     try{
 
@@ -45,13 +71,13 @@ async function loadAttendance(){
 
             "?action=getAttendance" +
 
-            "&flight=" +
-
-            encodeURIComponent(leader.flight) +
-
             "&trainingDay=" +
 
-            encodeURIComponent(trainingDay)
+            encodeURIComponent(trainingDay) +
+
+            "&flight=" +
+
+            encodeURIComponent(leader.flight)
 
         );
 
@@ -60,20 +86,29 @@ async function loadAttendance(){
 
         console.log(result);
 
-        if(result.success){
+        if(!result.success){
 
-            attendanceData =
-            result.records;
+            attendanceBody.innerHTML=
 
-            displayAttendance(attendanceData);
+            `
+            <tr>
+
+                <td colspan="8">
+
+                    No attendance records found.
+
+                </td>
+
+            </tr>
+            `;
+
+            return;
 
         }
 
-        else{
+        attendanceRecords = result.records;
 
-            alert(result.message);
-
-        }
+        displayAttendance(attendanceRecords);
 
     }
 
@@ -81,7 +116,19 @@ async function loadAttendance(){
 
         console.error(error);
 
-        alert("Unable to load attendance.");
+        attendanceBody.innerHTML=
+
+        `
+        <tr>
+
+            <td colspan="8">
+
+                Unable to load attendance.
+
+            </td>
+
+        </tr>
+        `;
 
     }
 
@@ -93,19 +140,16 @@ async function loadAttendance(){
 
 function displayAttendance(records){
 
-    const tbody =
-    document.querySelector("#attendanceTable tbody");
-
-    tbody.innerHTML = "";
+    attendanceBody.innerHTML = "";
 
     if(records.length===0){
 
-        tbody.innerHTML=
+        attendanceBody.innerHTML =
 
         `
         <tr>
 
-            <td colspan="5">
+            <td colspan="8">
 
                 No attendance records found.
 
@@ -120,23 +164,57 @@ function displayAttendance(records){
 
     records.forEach(record=>{
 
-        const row=document.createElement("tr");
+        const row =
+        document.createElement("tr");
 
-        row.innerHTML=`
+        row.innerHTML =
 
-            <td>${record.studentNumber}</td>
+        `
+        <td>${record.studentNumber}</td>
 
-            <td>${record.name}</td>
+        <td>${record.name}</td>
 
-            <td>${record.course}</td>
+        <td>${record.course}</td>
 
-            <td>${record.status}</td>
+        <td>${record.date}</td>
 
-            <td>${record.time}</td>
+        <td>${record.time}</td>
 
+        <td>${record.status}</td>
+
+        <td>
+
+        ${
+            record.signature
+
+            ?
+
+            `<a href="${record.signature}" target="_blank">
+            View Signature
+            </a>`
+
+            :
+
+            "No Signature"
+
+        }
+
+        </td>
+
+        <td>
+
+        <button
+        class="btn"
+        onclick="deleteAttendance('${record.studentNumber}')">
+
+        DELETE
+
+        </button>
+
+        </td>
         `;
 
-        tbody.appendChild(row);
+        attendanceBody.appendChild(row);
 
     });
 
@@ -144,28 +222,24 @@ function displayAttendance(records){
 
 
 // ======================================================
-// SEARCH FUNCTION
+// SEARCH STUDENT
 // ======================================================
 
-document
-.getElementById("searchBox")
-.addEventListener(
+searchBox.addEventListener(
 
     "keyup",
 
     function(){
 
-        const keyword=
+        const keyword =
 
         this.value
-
         .toLowerCase()
-
         .trim();
 
-        const filtered=
+        const filtered =
 
-        attendanceData.filter(record=>{
+        attendanceRecords.filter(record=>{
 
             return(
 
@@ -189,8 +263,9 @@ document
 
 );
 
+
 // ======================================================
-// REFRESH ATTENDANCE
+// REFRESH BUTTON
 // ======================================================
 
 function refreshAttendance(){
@@ -199,176 +274,19 @@ function refreshAttendance(){
 
 }
 
-
-
-
-// ======================================================
-// BACK TO DASHBOARD
-// ======================================================
-
-function backToDashboard(){
-
-    window.location.href =
-    "flight-dashboard.html";
-
-}
-
-
-// ======================================================
-// AUTO REFRESH EVERY 10 SECONDS
-// ======================================================
-
-setInterval(
-
-    function(){
-
-        loadAttendance();
-
-    },
-
-    10000
-
-);
-
-
-// ======================================================
-// LOGOUT FLIGHT LEADER
-// ======================================================
-
-function logoutFlightLeader(){
-
-    localStorage.removeItem(
-        "flightLeader"
-    );
-
-    localStorage.removeItem(
-        "selectedTrainingDay"
-    );
-
-    window.location.href =
-    "index.html";
-
-}
-
-
-// ======================================================
-// LOAD ATTENDANCE
-// ======================================================
-
-async function loadAttendance(){
-
-    attendanceBody.innerHTML =
-    "<tr><td colspan='9'>Loading attendance...</td></tr>";
-
-    try{
-
-        const response =
-        await fetch(
-
-            APPS_SCRIPT_URL +
-            "?action=getAttendance" +
-            "&trainingDay=" +
-            encodeURIComponent(trainingDay) +
-            "&flight=" +
-            encodeURIComponent(flight)
-
-        );
-
-        const result =
-        await response.json();
-
-        if(!result.success){
-
-            attendanceBody.innerHTML =
-            "<tr><td colspan='9'>No attendance records found.</td></tr>";
-
-            return;
-
-        }
-
-        attendanceBody.innerHTML = "";
-
-        result.records.forEach(record=>{
-
-            const row =
-            document.createElement("tr");
-
-            row.innerHTML =
-
-            `
-            <td>${record.studentNumber}</td>
-            <td>${record.name}</td>
-            <td>${record.course}</td>
-            <td>${record.date}</td>
-            <td>${record.time}</td>
-            <td>${record.status}</td>
-
-            <td>
-
-                ${
-                    record.signature
-
-                    ?
-
-                    `<a href="${record.signature}" target="_blank">
-                    View Signature
-                    </a>`
-
-                    :
-
-                    "No Signature"
-
-                }
-
-            </td>
-
-            <td>
-
-                <button
-                class="btn"
-                onclick="deleteAttendance('${record.studentNumber}')">
-
-                DELETE
-
-                </button>
-
-            </td>
-
-            `;
-
-            attendanceBody.appendChild(row);
-
-        });
-
-    }
-
-    catch(error){
-
-        console.error(error);
-
-        attendanceBody.innerHTML =
-        "<tr><td colspan='9'>Unable to load attendance.</td></tr>";
-
-    }
-
-}
-
-
 // ======================================================
 // DELETE ATTENDANCE
 // ======================================================
 
 async function deleteAttendance(studentNumber){
 
-    if(
+    const confirmDelete = confirm(
 
-        !confirm(
+        "Are you sure you want to delete this attendance record?"
 
-            "Delete this attendance record?"
+    );
 
-        )
-
-    ){
+    if(!confirmDelete){
 
         return;
 
@@ -376,8 +294,7 @@ async function deleteAttendance(studentNumber){
 
     try{
 
-        const response =
-        await fetch(
+        const response = await fetch(
 
             APPS_SCRIPT_URL,
 
@@ -397,7 +314,7 @@ async function deleteAttendance(studentNumber){
 
                     trainingDay:trainingDay,
 
-                    flight:flight,
+                    flight:leader.flight,
 
                     studentNumber:studentNumber
 
@@ -407,8 +324,7 @@ async function deleteAttendance(studentNumber){
 
         );
 
-        const result =
-        await response.json();
+        const result = await response.json();
 
         alert(result.message);
 
@@ -418,11 +334,24 @@ async function deleteAttendance(studentNumber){
 
     catch(error){
 
+        console.error(error);
+
         alert("Unable to delete attendance.");
 
     }
 
 }
+
+
+// ======================================================
+// AUTO REFRESH
+// ======================================================
+
+setInterval(function(){
+
+    loadAttendance();
+
+},10000);
 
 
 // ======================================================
@@ -433,14 +362,8 @@ function logoutFlightLeader(){
 
     localStorage.removeItem("flightLeader");
 
-    window.location.href =
-    "flight-login.html";
+    localStorage.removeItem("selectedTrainingDay");
+
+    window.location.href="index.html";
 
 }
-
-
-// ======================================================
-// INITIAL LOAD
-// ======================================================
-
-loadAttendance();
