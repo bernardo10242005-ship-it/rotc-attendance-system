@@ -23,12 +23,23 @@ if(!leader){
 }
 
 // ======================================================
+// CLEAN FLIGHT NAME
+// ======================================================
+
+const flight =
+
+leader.flight
+.replace("FLIGHT ","")
+.trim()
+.toUpperCase();
+
+// ======================================================
 // DISPLAY FLIGHT
 // ======================================================
 
 document.getElementById("flightName").innerHTML =
 
-"Flight Leader - " + leader.flight;
+"Flight " + flight;
 
 // ======================================================
 // PAGE LOAD
@@ -64,10 +75,6 @@ async function loadTrainingSettings(){
 
         console.log(settings);
 
-        //------------------------------------------------
-        // Display Settings
-        //------------------------------------------------
-
         if(settings.trainingDay){
 
             document.getElementById("trainingDay").value =
@@ -90,10 +97,6 @@ async function loadTrainingSettings(){
         " - " +
 
         settings.endTime;
-
-        //------------------------------------------------
-        // Load Statistics
-        //------------------------------------------------
 
         loadFlightStatistics();
 
@@ -135,7 +138,7 @@ async function loadFlightStatistics(){
 
             "&flight=" +
 
-            encodeURIComponent(leader.flight)
+            encodeURIComponent(flight)
 
         );
 
@@ -192,27 +195,67 @@ document
 );
 
 // ======================================================
-// OPEN ATTENDANCE
-// (Temporary)
+// OPEN ATTENDANCE SPREADSHEET
 // ======================================================
 
-function openAttendanceSpreadsheet(){
+async function openAttendanceSpreadsheet(){
 
-    const trainingDay =
+    try{
 
-    document.getElementById("trainingDay").value;
+        const trainingDay =
 
-    localStorage.setItem(
+        document.getElementById("trainingDay").value;
 
-        "selectedTrainingDay",
+        const response =
 
-        trainingDay
+        await fetch(
 
-    );
+            APPS_SCRIPT_URL +
 
-    window.location.href =
+            "?action=getAttendanceSpreadsheet" +
 
-    "flight-attendance.html";
+            "&trainingDay=" +
+
+            encodeURIComponent(trainingDay) +
+
+            "&flight=" +
+
+            encodeURIComponent(flight)
+
+        );
+
+        const result =
+        await response.json();
+
+        console.log(result);
+
+        if(result.success){
+
+            window.open(
+
+                result.url,
+
+                "_blank"
+
+            );
+
+        }
+
+        else{
+
+            alert(result.message);
+
+        }
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert("Unable to open spreadsheet.");
+
+    }
 
 }
 
