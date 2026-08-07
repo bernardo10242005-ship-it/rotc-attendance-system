@@ -210,12 +210,15 @@ async function openAttendanceSpreadsheet(){
 
             APPS_SCRIPT_URL +
 
-            "?action=getAttendanceSpreadsheet" +
+           "?action=getAttendanceSpreadsheet" +
 
-            "&trainingDay=" +
+"&trainingDay=" +
 
-            encodeURIComponent(trainingDay)
+encodeURIComponent(trainingDay) +
 
+"&flight=" +
+
+encodeURIComponent(leader.flight)
         );
 
         const result =
