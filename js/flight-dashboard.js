@@ -225,14 +225,7 @@ async function openAttendanceSpreadsheet(){
 
         if(result.success){
 
-            window.open(
-
-                result.url,
-
-                "_blank"
-
-            );
-
+           window.location.href = result.url;
         }
 
         else{
