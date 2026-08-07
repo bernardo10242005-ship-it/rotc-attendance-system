@@ -1,32 +1,113 @@
 // ======================================================
 // FULL BRIGHT COLLEGE
 // ROTC ATTENDANCE MANAGEMENT SYSTEM
-// FLIGHT LEADER DASHBOARD
+// FLIGHT LEADER DASHBOARD V2
 // ======================================================
 
-// Load logged in Flight Leader
+const APPS_SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbzmqVoMihTcRZkRLhwgmCWK9zSv1bgP6W2YL0aEUio2bX340vPCdpVQ6uJD3lGNq3J_4A/exec";
+
+// ======================================================
+// LOAD FLIGHT LEADER
+// ======================================================
+
 const leader =
 JSON.parse(
 localStorage.getItem("flightLeader")
 );
 
-// If not logged in
 if(!leader){
 
     window.location.href="flight-login.html";
 
 }
 
-// Display Flight Name
+// ======================================================
+// DISPLAY FLIGHT
+// ======================================================
+
 document.getElementById("flightName").innerHTML=
 
-leader.flight;
+"Flight Leader - " + leader.flight;
+
 
 // ======================================================
-// VIEW ATTENDANCE
+// PAGE LOAD
 // ======================================================
 
-function openAttendance(){
+window.onload=function(){
+
+    loadTrainingSettings();
+
+};
+
+
+// ======================================================
+// LOAD TRAINING SETTINGS
+// ======================================================
+
+async function loadTrainingSettings(){
+
+    try{
+
+        const response=
+        await fetch(
+
+            APPS_SCRIPT_URL+
+
+            "?t="+
+
+            Date.now()
+
+        );
+
+        const settings=
+        await response.json();
+
+        console.log(settings);
+
+        if(settings.trainingDay){
+
+            document.getElementById("trainingDay").value=
+
+            settings.trainingDay;
+
+        }
+
+        document.getElementById("trainingTopic").value=
+
+        settings.trainingTopic ||
+
+        settings.topic ||
+
+        "";
+
+        document.getElementById("attendanceWindow").value=
+
+        settings.startTime+
+
+        " - "+
+
+        settings.endTime;
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        alert("Unable to load training settings.");
+
+    }
+
+}
+
+
+// ======================================================
+// OPEN ATTENDANCE PAGE
+// ======================================================
+
+function openAttendanceSpreadsheet(){
 
     const trainingDay=
 
@@ -45,6 +126,18 @@ function openAttendance(){
     "flight-attendance.html";
 
 }
+
+
+// ======================================================
+// REFRESH
+// ======================================================
+
+function refreshDashboard(){
+
+    loadTrainingSettings();
+
+}
+
 
 // ======================================================
 // LOGOUT
