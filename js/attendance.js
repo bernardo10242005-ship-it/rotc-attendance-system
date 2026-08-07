@@ -50,6 +50,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     student = JSON.parse(localStorage.getItem("student"));
 
+    console.log(student);
+
     if (!student) {
 
         window.location.href = "login.html";
