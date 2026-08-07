@@ -203,11 +203,9 @@ async function openAttendanceSpreadsheet(){
     try{
 
         const trainingDay =
-
         document.getElementById("trainingDay").value;
 
         const response =
-
         await fetch(
 
             APPS_SCRIPT_URL +
@@ -216,11 +214,7 @@ async function openAttendanceSpreadsheet(){
 
             "&trainingDay=" +
 
-            encodeURIComponent(trainingDay) +
-
-            "&flight=" +
-
-            encodeURIComponent(flight)
+            encodeURIComponent(trainingDay)
 
         );
 
@@ -258,7 +252,6 @@ async function openAttendanceSpreadsheet(){
     }
 
 }
-
 // ======================================================
 // REFRESH
 // ======================================================
