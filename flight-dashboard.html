@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,11 +5,13 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 <title>Flight Leader Dashboard</title>
 
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet"
+href="css/style.css">
 
 </head>
 
@@ -18,53 +19,139 @@
 
 <div class="container">
 
-    <h1>PHILIPPINE AIR FORCE ROTC</h1>
+    <h1>FULL BRIGHT COLLEGE</h1>
 
-    <h2>FLIGHT LEADER DASHBOARD</h2>
-
-    <hr>
-
-    <h2 id="flightName"></h2>
-
-    <p>
-        Welcome Flight Leader.
-    </p>
+    <h2>PHILIPPINE AIR FORCE ROTC</h2>
 
     <hr>
 
-    <h3>Select Training Day</h3>
+    <h2 id="flightName">
+
+        Flight Leader
+
+    </h2>
+
+    <hr>
+
+    <label>
+
+        Training Day
+
+    </label>
 
     <select id="trainingDay">
 
-        <option value="Training Day 1">Training Day 1</option>
-
-        <option value="Training Day 2">Training Day 2</option>
-
-        <option value="Training Day 3">Training Day 3</option>
-
-        <option value="Training Day 4">Training Day 4</option>
-
-        <option value="Training Day 5">Training Day 5</option>
-
-        <option value="Training Day 6">Training Day 6</option>
-
-        <option value="Training Day 7">Training Day 7</option>
-
-        <option value="Training Day 8">Training Day 8</option>
+        <option>Training Day 1</option>
+        <option>Training Day 2</option>
+        <option>Training Day 3</option>
+        <option>Training Day 4</option>
+        <option>Training Day 5</option>
+        <option>Training Day 6</option>
+        <option>Training Day 7</option>
+        <option>Training Day 8</option>
+        <option>Training Day 9</option>
+        <option>Training Day 10</option>
+        <option>Training Day 11</option>
+        <option>Training Day 12</option>
+        <option>Training Day 13</option>
+        <option>Training Day 14</option>
+        <option>Training Day 15</option>
 
     </select>
 
     <br><br>
 
-    <button class="btn" onclick="openAttendance()">
+    <label>
 
-        📋 VIEW ATTENDANCE
+        Training Topic
+
+    </label>
+
+    <input
+    type="text"
+    id="trainingTopic"
+    readonly>
+
+    <br><br>
+
+    <label>
+
+        Attendance Window
+
+    </label>
+
+    <input
+    type="text"
+    id="attendanceWindow"
+    readonly>
+
+    <hr>
+
+    <div class="stats">
+
+        <div>
+
+            <h3>Total Strength</h3>
+
+            <h2 id="totalStrength">
+
+                0
+
+            </h2>
+
+        </div>
+
+        <div>
+
+            <h3>Total Present</h3>
+
+            <h2 id="totalPresent">
+
+                0
+
+            </h2>
+
+        </div>
+
+        <div>
+
+            <h3>Total Absent</h3>
+
+            <h2 id="totalAbsent">
+
+                0
+
+            </h2>
+
+        </div>
+
+    </div>
+
+    <hr>
+
+    <button
+    class="btn"
+    onclick="openAttendanceSpreadsheet()">
+
+        📄 OPEN ATTENDANCE SPREADSHEET
 
     </button>
 
     <br><br>
 
-    <button class="btn logoutBtn" onclick="logoutFlightLeader()">
+    <button
+    class="btn"
+    onclick="refreshDashboard()">
+
+        🔄 REFRESH ATTENDANCE
+
+    </button>
+
+    <br><br>
+
+    <button
+    class="btn logoutBtn"
+    onclick="logoutFlightLeader()">
 
         LOGOUT
 
