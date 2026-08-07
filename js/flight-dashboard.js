@@ -26,10 +26,9 @@ if(!leader){
 // DISPLAY FLIGHT
 // ======================================================
 
-document.getElementById("flightName").innerHTML=
+document.getElementById("flightName").innerHTML =
 
 "Flight Leader - " + leader.flight;
-
 
 // ======================================================
 // PAGE LOAD
@@ -41,7 +40,6 @@ window.onload=function(){
 
 };
 
-
 // ======================================================
 // LOAD TRAINING SETTINGS
 // ======================================================
@@ -50,31 +48,34 @@ async function loadTrainingSettings(){
 
     try{
 
-        const response=
+        const response =
         await fetch(
 
-            APPS_SCRIPT_URL+
+            APPS_SCRIPT_URL +
 
-            "?t="+
+            "?t=" +
 
             Date.now()
 
         );
 
-        const settings=
+        const settings =
         await response.json();
 
         console.log(settings);
 
+        //------------------------------------------------
+        // Display Settings
+        //------------------------------------------------
+
         if(settings.trainingDay){
 
-            document.getElementById("trainingDay").value=
-
+            document.getElementById("trainingDay").value =
             settings.trainingDay;
 
         }
 
-        document.getElementById("trainingTopic").value=
+        document.getElementById("trainingTopic").value =
 
         settings.trainingTopic ||
 
@@ -82,13 +83,19 @@ async function loadTrainingSettings(){
 
         "";
 
-        document.getElementById("attendanceWindow").value=
+        document.getElementById("attendanceWindow").value =
 
-        settings.startTime+
+        settings.startTime +
 
-        " - "+
+        " - " +
 
         settings.endTime;
+
+        //------------------------------------------------
+        // Load Statistics
+        //------------------------------------------------
+
+        loadFlightStatistics();
 
     }
 
@@ -102,14 +109,96 @@ async function loadTrainingSettings(){
 
 }
 
+// ======================================================
+// LOAD FLIGHT STATISTICS
+// ======================================================
+
+async function loadFlightStatistics(){
+
+    try{
+
+        const trainingDay =
+
+        document.getElementById("trainingDay").value;
+
+        const response =
+
+        await fetch(
+
+            APPS_SCRIPT_URL +
+
+            "?action=getFlightStatistics" +
+
+            "&trainingDay=" +
+
+            encodeURIComponent(trainingDay) +
+
+            "&flight=" +
+
+            encodeURIComponent(leader.flight)
+
+        );
+
+        const result =
+        await response.json();
+
+        console.log(result);
+
+        if(result.success){
+
+            document.getElementById("totalStrength").innerHTML =
+            result.totalStrength;
+
+            document.getElementById("totalPresent").innerHTML =
+            result.totalPresent;
+
+            document.getElementById("totalAbsent").innerHTML =
+            result.totalAbsent;
+
+        }
+
+        else{
+
+            alert(result.message);
+
+        }
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+    }
+
+}
 
 // ======================================================
-// OPEN ATTENDANCE PAGE
+// TRAINING DAY CHANGED
+// ======================================================
+
+document
+.getElementById("trainingDay")
+.addEventListener(
+
+    "change",
+
+    function(){
+
+        loadFlightStatistics();
+
+    }
+
+);
+
+// ======================================================
+// OPEN ATTENDANCE
+// (Temporary)
 // ======================================================
 
 function openAttendanceSpreadsheet(){
 
-    const trainingDay=
+    const trainingDay =
 
     document.getElementById("trainingDay").value;
 
@@ -121,12 +210,11 @@ function openAttendanceSpreadsheet(){
 
     );
 
-    window.location.href=
+    window.location.href =
 
     "flight-attendance.html";
 
 }
-
 
 // ======================================================
 // REFRESH
@@ -137,7 +225,6 @@ function refreshDashboard(){
     loadTrainingSettings();
 
 }
-
 
 // ======================================================
 // LOGOUT
@@ -157,7 +244,7 @@ function logoutFlightLeader(){
 
     );
 
-    window.location.href=
+    window.location.href =
 
     "index.html";
 
