@@ -2,9 +2,13 @@
 // FULL BRIGHT COLLEGE
 // ROTC ATTENDANCE MANAGEMENT SYSTEM
 // STUDENT DASHBOARD
-// VERSION 3
+// VERSION 4
 //
-// ATTENDANCE STATUS NOW CHECKS GOOGLE SHEETS
+// ATTENDANCE STATUS:
+// - Reads attendance directly from Google Sheets
+// - Does NOT depend on localStorage for status
+// - Checks Student Number + Training Day + Date
+// - Refreshes every 30 seconds
 // ======================================================
 
 
@@ -176,6 +180,7 @@ function updateClock() {
 
 updateClock();
 
+
 setInterval(
     updateClock,
     1000
@@ -191,7 +196,7 @@ document.getElementById("status");
 
 
 // ======================================================
-// SHOW STATUS
+// SHOW ATTENDANCE STATUS
 // ======================================================
 
 function showAttendanceStatus(
@@ -229,18 +234,12 @@ function showAttendanceStatus(
 
 
 // ======================================================
-// FORMAT DATE
+// GET TODAY
 //
-// IMPORTANT:
-// Google Apps Script stores the date as:
+// Must match Google Apps Script:
 //
 // MM/dd/yyyy
 //
-// Example:
-//
-// 09/04/2026
-//
-// This function creates the same format.
 // ======================================================
 
 function getTodayServerDate() {
@@ -303,11 +302,6 @@ function normalizeTrainingDay(
     }
 
 
-    // Example:
-    // "1"
-    // becomes
-    // "Training Day 1"
-
     if (
         /^\d+$/.test(value)
     ) {
@@ -318,11 +312,6 @@ function normalizeTrainingDay(
 
     }
 
-
-    // Example:
-    // "Day 4"
-    // becomes
-    // "Training Day 4"
 
     else if (
         /^day\s+\d+$/i.test(value)
@@ -338,11 +327,6 @@ function normalizeTrainingDay(
 
     }
 
-
-    // Example:
-    // "training day 4"
-    // becomes
-    // "Training Day 4"
 
     else if (
         /^training\s+day\s+\d+$/i.test(value)
@@ -365,18 +349,18 @@ function normalizeTrainingDay(
 
 
 // ======================================================
-// LOAD CURRENT SETTINGS
-//
-// This gets the current Training Day from Apps Script.
+// GET CURRENT TRAINING DAY
 // ======================================================
 
 async function getCurrentTrainingDay() {
 
     const response =
     await fetch(
+
         API_URL +
         "?t=" +
         Date.now()
+
     );
 
 
@@ -398,8 +382,10 @@ async function getCurrentTrainingDay() {
     ) {
 
         throw new Error(
+
             data.message ||
             "Could not load attendance settings."
+
         );
 
     }
@@ -413,7 +399,7 @@ async function getCurrentTrainingDay() {
 
 
 // ======================================================
-// CHECK GOOGLE SHEETS ATTENDANCE
+// CHECK ATTENDANCE
 // ======================================================
 
 async function checkAttendanceStatus() {
@@ -426,7 +412,7 @@ async function checkAttendanceStatus() {
 
 
     // --------------------------------------------------
-    // TEMPORARY LOADING MESSAGE
+    // LOADING
     // --------------------------------------------------
 
     statusElement.innerHTML =
@@ -456,26 +442,7 @@ async function checkAttendanceStatus() {
 
 
         // ==================================================
-        // GET STUDENT FLIGHT
-        // ==================================================
-
-        const studentFlight =
-        String(
-            student.flight || ""
-        ).trim();
-
-
-        if (!studentFlight) {
-
-            throw new Error(
-                "Student flight is missing."
-            );
-
-        }
-
-
-        // ==================================================
-        // GET STUDENT NUMBER
+        // STUDENT NUMBER
         // ==================================================
 
         const studentNumber =
@@ -494,20 +461,47 @@ async function checkAttendanceStatus() {
 
 
         // ==================================================
-        // REQUEST ATTENDANCE FROM GOOGLE SHEETS
+        // FLIGHT
+        // ==================================================
+
+        const studentFlight =
+        String(
+            student.flight || ""
+        )
+        .replace("FLIGHT ", "")
+        .trim()
+        .toUpperCase();
+
+
+        if (!studentFlight) {
+
+            throw new Error(
+                "Student flight is missing."
+            );
+
+        }
+
+
+        // ==================================================
+        // REQUEST ATTENDANCE
         // ==================================================
 
         const attendanceURL =
+
         API_URL +
+
         "?action=getAttendance" +
+
         "&trainingDay=" +
         encodeURIComponent(
             trainingDay
         ) +
+
         "&flight=" +
         encodeURIComponent(
             studentFlight
         ) +
+
         "&t=" +
         Date.now();
 
@@ -521,8 +515,10 @@ async function checkAttendanceStatus() {
         if (!response.ok) {
 
             throw new Error(
+
                 "Attendance server returned HTTP " +
                 response.status
+
             );
 
         }
@@ -532,21 +528,23 @@ async function checkAttendanceStatus() {
         await response.json();
 
 
-        // ==================================================
-        // CHECK SERVER RESPONSE
-        // ==================================================
-
         if (
             data.success === false
         ) {
 
             throw new Error(
+
                 data.message ||
                 "Could not read attendance records."
+
             );
 
         }
 
+
+        // ==================================================
+        // ATTENDANCE RECORDS
+        // ==================================================
 
         const records =
         Array.isArray(
@@ -559,7 +557,7 @@ async function checkAttendanceStatus() {
 
 
         // ==================================================
-        // TODAY'S SERVER DATE
+        // TODAY
         // ==================================================
 
         const today =
@@ -567,13 +565,7 @@ async function checkAttendanceStatus() {
 
 
         // ==================================================
-        // SEARCH FOR STUDENT ATTENDANCE
-        //
-        // Must match:
-        //
-        // Student Number
-        // +
-        // Today's Date
+        // FIND STUDENT
         // ==================================================
 
         let alreadySubmitted =
@@ -625,7 +617,7 @@ async function checkAttendanceStatus() {
 
 
         // ==================================================
-        // DISPLAY FINAL STATUS
+        // DISPLAY STATUS
         // ==================================================
 
         showAttendanceStatus(
@@ -634,41 +626,15 @@ async function checkAttendanceStatus() {
 
 
         // ==================================================
-        // SAVE LOCAL COPY TOO
-        //
-        // This is only a convenience.
-        // Google Sheets remains the source of truth.
+        // LOG
         // ==================================================
 
-        if (
-            alreadySubmitted
-        ) {
-
-            localStorage.setItem(
-                "attendanceRecord",
-                JSON.stringify({
-
-                    studentNumber:
-                    studentNumber,
-
-                    date:
-                    today,
-
-                    trainingDay:
-                    trainingDay,
-
-                    submitted:
-                    true
-
-                })
-            );
-
-        }
-
-
         console.log(
-            "Attendance check completed.",
+
+            "ATTENDANCE STATUS:",
+
             {
+
                 trainingDay:
                 trainingDay,
 
@@ -683,7 +649,9 @@ async function checkAttendanceStatus() {
 
                 submitted:
                 alreadySubmitted
+
             }
+
         );
 
     }
@@ -692,68 +660,28 @@ async function checkAttendanceStatus() {
     catch (error) {
 
         console.error(
+
             "ATTENDANCE STATUS ERROR:",
+
             error
+
         );
 
 
         // --------------------------------------------------
-        // FALLBACK TO LOCAL STORAGE
+        // IMPORTANT:
         //
-        // If the server temporarily cannot be reached,
-        // we use the previous local record.
+        // We DO NOT use localStorage as the final answer.
+        //
+        // If Google Sheets cannot be checked, tell the user
+        // that the status could not be verified.
         // --------------------------------------------------
 
-        const attendance =
-        JSON.parse(
-            localStorage.getItem(
-                "attendanceRecord"
-            )
-        );
+        statusElement.innerHTML =
+        "⚠️ Unable to verify attendance";
 
-
-        const today =
-        getTodayServerDate();
-
-
-        if (
-
-            attendance &&
-
-            String(
-                attendance.studentNumber || ""
-            ).trim() ===
-            String(
-                student.studentNumber || ""
-            ).trim()
-
-            &&
-
-            String(
-                attendance.date || ""
-            ).trim() ===
-            today
-
-        ) {
-
-            showAttendanceStatus(
-                true
-            );
-
-        }
-
-        else {
-
-            showAttendanceStatus(
-                false
-            );
-
-        }
-
-
-        console.error(
-            "Using local attendance fallback."
-        );
+        statusElement.style.color =
+        "orange";
 
     }
 
@@ -761,22 +689,24 @@ async function checkAttendanceStatus() {
 
 
 // ======================================================
-// START ATTENDANCE STATUS CHECK
+// START CHECK
 // ======================================================
 
 checkAttendanceStatus();
 
 
 // ======================================================
-// OPTIONAL REFRESH
+// AUTOMATIC REFRESH
 //
-// Re-check every 30 seconds so the dashboard can update
-// if attendance was submitted from another browser/device.
+// Check Google Sheets every 30 seconds.
 // ======================================================
 
 setInterval(
+
     checkAttendanceStatus,
+
     30000
+
 );
 
 
